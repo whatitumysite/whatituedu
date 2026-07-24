@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🌱 PlantVision AI - Deteksi & Analisis Tanaman</title>
+    <title>whatitu plant checker</title>
 
     <!-- ============================================= -->
     <!-- CDN Libraries -->
@@ -1887,73 +1887,85 @@
 
     /**
      * Tangkap gambar dari kamera dan jalankan analisis
-     */
+*/
     async function captureAndAnalyze() {
-        if (!APP_STATE.isCameraActive) {
-            showToast('⚠️ Aktifkan kamera terlebih dahulu');
-            return;
-        }
-
-        // Show loading
-        showLoading('📸 Menangkap gambar dan menganalisis tanaman...');
-
-        try {
-            // Capture frame from video
-            const canvas = DOM.captureCanvas;
-            canvas.width = DOM.video.videoWidth;
-            canvas.height = DOM.video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(DOM.video, 0, 0);
-
-            // Get image data
-            APP_STATE.capturedImageData = canvas.toDataURL('image/jpeg', 0.8);
-
-            // Run detection on captured frame
-            showLoading('🤖 Menjalankan AI detection...');
-            const predictions = await APP_STATE.model.detect(canvas);
-
-            // Filter plant detections
-            const plantDetections = predictions.filter(p =>
-                p.class === 'potted plant' ||
-                p.class === 'vase' ||
-                p.class === 'flower' ||
-                p.class === 'tree' ||
-                p.class === 'broccoli'
-            );
-
-            // Run color analysis on the image
-            showLoading('🎨 Menganalisis warna dan kesehatan tanaman...');
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-            // Perform full analysis
-            const analysis = performPlantAnalysis(
-                imageData,
-                canvas.width,
-                canvas.height,
-                plantDetections
-            );
-
-            APP_STATE.currentAnalysis = analysis;
-
-            // Draw bounding boxes on captured image
-            drawAnalysisOnCapture(ctx, plantDetections, analysis);
-            APP_STATE.capturedImageData = canvas.toDataURL('image/jpeg', 0.85);
-
-            // Display results
-            displayAnalysisResults(analysis);
-
-            // Switch to analysis tab
-            switchTab('analysis');
-
-            hideLoading();
-            showToast('✅ Analisis selesai!');
-
-        } catch (error) {
-            console.error('Analysis error:', error);
-            hideLoading();
-            showToast('❌ Gagal menganalisis: ' + error.message);
-        }
+    if (!APP_STATE.isCameraActive) {
+        showToast('⚠️ Aktifkan kamera terlebih dahulu');
+        return;
     }
+
+    // TUGAS PRIORITAS: Hentikan loop deteksi real-time agar tidak terjadi 
+    // benturan memori pada model WebGL/TensorFlow.
+    APP_STATE.isDetecting = false;
+    if (APP_STATE.detectionLoop) {
+        clearTimeout(APP_STATE.detectionLoop);
+        APP_STATE.detectionLoop = null;
+    }
+
+    // Show loading
+    showLoading('📸 Menangkap gambar dan menganalisis tanaman...');
+
+    try {
+        // Capture frame from video
+        const canvas = DOM.captureCanvas;
+        canvas.width = DOM.video.videoWidth;
+        canvas.height = DOM.video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(DOM.video, 0, 0);
+
+        // Get image data
+        APP_STATE.capturedImageData = canvas.toDataURL('image/jpeg', 0.8);
+
+        // Run detection on captured frame
+        showLoading('🤖 Menjalankan AI detection...');
+        const predictions = await APP_STATE.model.detect(canvas);
+
+        // Filter plant detections
+        const plantDetections = predictions.filter(p =>
+            p.class === 'potted plant' ||
+            p.class === 'vase' ||
+            p.class === 'flower' ||
+            p.class === 'tree' ||
+            p.class === 'broccoli'
+        );
+
+        // Run color analysis on the image
+        showLoading('🎨 Menganalisis warna dan kesehatan tanaman...');
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        // Perform full analysis
+        const analysis = performPlantAnalysis(
+            imageData,
+            canvas.width,
+            canvas.height,
+            plantDetections
+        );
+
+        APP_STATE.currentAnalysis = analysis;
+
+        // Draw bounding boxes on captured image
+        drawAnalysisOnCapture(ctx, plantDetections, analysis);
+        APP_STATE.capturedImageData = canvas.toDataURL('image/jpeg', 0.85);
+
+        // Display results
+        displayAnalysisResults(analysis);
+
+        // Switch to analysis tab
+        switchTab('analysis');
+
+        hideLoading();
+        showToast('✅ Analisis selesai!');
+
+    } catch (error) {
+        console.error('Analysis error:', error);
+        hideLoading();
+        showToast('❌ Gagal menganalisis: ' + error.message);
+        
+        // Mulai kembali loop jika terjadi kegagalan agar kamera tidak diam (freeze)
+        APP_STATE.isDetecting = true;
+        detectFrame();
+    }
+}
 
     /**
      * Analisis lengkap tanaman dari data gambar
