@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whatitu Education Central</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ============================================
+           RESET & BASE STYLES
+        ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ============================================
+           CANVAS PARTICLE BACKGROUND
+        ============================================ */
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ============================================
+           HEADER STYLES
+        ============================================ */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 25px 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-50%) translateX(-3px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            letter-spacing: -1px;
+        }
+
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            font-weight: 300;
+            margin-top: 5px;
+        }
+
+        /* ============================================
+           CONTROL BAR (STICKY)
+        ============================================ */
+        .control-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+            max-width: 500px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.1rem;
+            color: rgba(102, 126, 234, 0.8);
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            color: #333;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 4px 25px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        #searchInput::placeholder {
+            color: #aaa;
+        }
+
+        .filter-container {
+            position: relative;
+            min-width: 200px;
+        }
+
+        .filter-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            color: rgba(102, 126, 234, 0.8);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        #categoryFilter {
+            width: 100%;
+            padding: 15px 45px 15px 45px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        #categoryFilter:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 4px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .custom-arrow {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #667eea;
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .filter-container:hover .custom-arrow {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        /* ============================================
+           RESULTS INFO
+        ============================================ */
+        .results-info {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .results-count {
+            font-weight: 600;
+            color: #f093fb;
+        }
+
+        /* ============================================
+           PRODUCT GRID
+        ============================================ */
+        .product-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 30px 20px 50px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ============================================
+           PRODUCT CARD (GLASSMORPHISM)
+        ============================================ */
+        .product-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .product-card:hover::before {
+            left: 100%;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .product-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.3;
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .category-badge.online {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .category-badge.surabaya {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+        }
+
+        .category-badge.probolinggo {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: #fff;
+        }
+
+        .price-container {
+            margin: 20px 0;
+        }
+
+        .price-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .product-price {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .product-preview {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .view-detail {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .arrow-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .arrow-icon {
+            transform: translateX(5px);
+        }
+
+        /* ============================================
+           EMPTY STATE
+        ============================================ */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .empty-text {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* ============================================
+           MODAL OVERLAY & POPUP
+        ============================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 550px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            position: relative;
+            transform: scale(0.8) translateY(50px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 1.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: rgba(245, 87, 108, 0.8);
+            transform: rotate(90deg);
+        }
+
+        .modal-badge {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        .modal-price-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-price-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .modal-price {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-description {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .cta-btn {
+            display: block;
+            width: 100%;
+            padding: 18px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 200% 200%;
+            color: #fff;
+            text-decoration: none;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .cta-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* ============================================
+           FOOTER
+        ============================================ */
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        footer a {
+            color: #f093fb;
+            text-decoration: none;
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN
+        ============================================ */
+        @media (max-width: 768px) {
+            .back-btn {
+                position: relative;
+                left: 0;
+                top: 0;
+                transform: none;
+                display: inline-block;
+                margin-bottom: 15px;
+                font-size: 0.8rem;
+                padding: 8px 15px;
+            }
+
+            header {
+                padding: 20px 15px;
+            }
+
+            .header-title {
+                font-size: 1.8rem;
+            }
+
+            .header-subtitle {
+                font-size: 0.85rem;
+            }
+
+            .control-bar {
+                padding: 15px;
+                flex-direction: column;
+            }
+
+            .search-container,
+            .filter-container {
+                width: 100%;
+                max-width: none;
+                min-width: auto;
+            }
+
+            .product-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px 15px 40px;
+            }
+
+            .product-card {
+                padding: 20px;
+            }
+
+            .product-name {
+                font-size: 1.15rem;
+            }
+
+            .product-price {
+                font-size: 1.4rem;
+            }
+
+            .modal {
+                padding: 30px 25px;
+                margin: 10px;
+                border-radius: 20px;
+            }
+
+            .modal-title {
+                font-size: 1.4rem;
+                padding-right: 40px;
+            }
+
+            .modal-price {
+                font-size: 1.6rem;
+            }
+
+            .cta-btn {
+                padding: 16px 25px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .product-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 1400px) {
+            .product-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* ============================================
+           ANIMATIONS
+        ============================================ */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .product-card {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .product-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .product-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .product-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .product-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .product-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .product-card:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+
+        /* ============================================
+           SCROLLBAR CUSTOM
+        ============================================ */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2, #f093fb);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ============================================
+         CANVAS FOR PARTICLE ANIMATION
+    ============================================ -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- ============================================
+         HEADER SECTION
+    ============================================ -->
+    <header>
+        <a href="https://mywhatitu.web.id" class="back-btn">⬅ Kembali ke Utama</a>
+        <h1 class="header-title">✨ Whatitu Education</h1>
+        <p class="header-subtitle">Developing and growing in knowledge</p>
+    </header>
+
+    <!-- ============================================
+         STICKY CONTROL BAR
+    ============================================ -->
+    <div class="control-bar">
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Cari nama usaha atau produk..." autocomplete="off">
+        </div>
+        <div class="filter-container">
+            <span class="filter-icon">📂</span>
+            <select id="categoryFilter">
+                <option value="all">🏪 Semua Kategori</option>
+                <option value="bby">cr bby</option>
+                <option value="krb">cr krb</option>
+            </select>
+            <span class="custom-arrow">▼</span>
+        </div>
+    </div>
+
+    <!-- ============================================
+         RESULTS INFO
+    ============================================ -->
+    <div class="results-info">
+        Menampilkan <span class="results-count" id="resultsCount">0</span> produk
+    </div>
+
+    <!-- ============================================
+         PRODUCT GRID CONTAINER
+    ============================================ -->
+    <main class="product-grid" id="productGrid">
+        <!-- Products will be rendered here by JavaScript -->
+    </main>
+
+    <!-- ============================================
+         FOOTER
+    ============================================ -->
+    <footer>
+        <p>© <strong>Whatitu EDUCATION</strong>. For better learning experience.</p>
+    </footer>
+
+    <!-- ============================================
+         MODAL POPUP
+    ============================================ -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <button class="modal-close" id="modalClose" aria-label="Tutup">×</button>
+            <span class="modal-badge" id="modalBadge"></span>
+            <h2 class="modal-title" id="modalTitle"></h2>
+            <div class="modal-price-container">
+                <p class="modal-price-label">edu</p>
+                <p class="modal-price" id="modalPrice"></p>
+            </div>
+            <p class="modal-description" id="modalDescription"></p>
+            <a href="#" id="modalCTA" class="cta-btn" target="_blank" rel="noopener noreferrer">
+                🚀 Klik Disini
+            </a>
+        </div>
+    </div>
+
+    <!-- ============================================
+         JAVASCRIPT
+    ============================================ -->
+    <script>
+        // ============================================
+        // DATA PRODUK - TAMBAHKAN PRODUK BARU DI SINI!
+        // ============================================
+        // 📌 Cara menambah produk baru:
+        // Copy template di bawah, lalu edit sesuai kebutuhan
+        // 
+        // Template:
+        // {
+        //     id: [nomor unik],
+        //     nama: "[Nama Usaha/Produk]",
+        //     kategori: "[online/surabaya/probolinggo]",
+        //     edu: "[edu dalam format Rupiah]",
+        //     deskripsi: "[Deskripsi lengkap produk/layanan]",
+        //     linkTuju: "[URL toko/WhatsApp]"
+        // },
+
+        const products = [
+            {
+                id: 1,
+                nama: "Whatitu Kasir Helper",
+                kategori: "bby",
+                edu: "Free access",
+                deskripsi: "Layanan yang membantu Anda mengelola kasir dengan lebih mudah dan efisien. Dengan berbagai fitur yang tersedia secara gratis.",
+                linkTuju: "https://whatitumysite.github.io/kasirfree/"
+            },
+            {
+                id: 3,
+                nama: "Perkiraan Stok Pintar",
+                kategori: "bby",
+                edu: "Free access",
+                deskripsi: "Untuk membantu Anda mengoptimalkan stok barang di toko/gudang.",
+                linkTuju: "https://majestic-conkies-a46cf5.netlify.app/simplex2.html"
+            },
+            {
+                id: 4,
+                nama: "E-Kasir Whatitu Premium",
+                kategori: "bby",
+                edu: "Free access",
+                deskripsi: "Untuk membantu Anda dalam pengelolaan kasir.",
+                linkTuju: "https://mywhatitu.web.id/kasir_whatitu1.html"
+            },
+            {
+                id: 5,
+                nama: "Whatitu Creativity",
+                kategori: "bby",
+                edu: "Free access",
+                deskripsi: "Untuk membantu Anda dalam mengembangkan kreativitas anak.",
+                linkTuju: "https://mywhatitu.web.id/creativity.html"
+            },
+
+            // ============================================
+            // KATEGORI: SURABAYA
+            // ============================================
+            // {
+            //     id: 3,
+            //     nama: "Bakso Malang Pak Joko",
+            //     kategori: "surabaya",
+            //     edu: "Rp 25.000 - Rp 50.000",
+            //     deskripsi: "Bakso Malang legendaris dengan kuah kaldu sapi yang gurih! Tersedia berbagai pilihan: bakso urat, bakso telur, bakso mercon, dan pangsit goreng renyah. Lokasi: Jl. Raya Darmo No. 45, Surabaya. Buka setiap hari 10.00 - 21.00 WIB. Bisa pesan online via GoFood/GrabFood!",
+            //     linkTuju: "https://wa.me/6282345678901?text=Halo Pak Joko, saya mau pesan bakso"
+            // },
+            // {
+            //     id: 4,
+            //     nama: "Bengkel Motor Jaya Abadi",
+            //     kategori: "surabaya",
+            //     edu: "Service mulai Rp 50.000",
+            //     deskripsi: "Bengkel motor terpercaya di Surabaya Timur. Spesialis tune-up, ganti oli, bore-up, dan modifikasi. Teknisi berpengalaman lebih dari 15 tahun. Garansi service dan spare part original. Lokasi: Jl. Manyar Kertoarjo No. 12.",
+            //     linkTuju: "https://goo.gl/maps/contohlink"
+            // }
+
+            // ============================================
+            // KATEGORI: PROBOLINGGO
+            // ============================================
+
+            //     id: 5,
+            //     nama: "Batik Tulis Probolinggo",
+            //     kategori: "probolinggo",
+            //     edu: "Rp 150.000 - Rp 800.000",
+            //     deskripsi: "Batik tulis asli Probolinggo dengan motif khas pesisir dan Gunung Bromo. Setiap kain dibuat secara handmade oleh pengrajin lokal berpengalaman. Tersedia kemeja batik, dress, dan kain meteran. Bisa request motif custom untuk seragam kantor atau acara khusus!",
+            //     linkTuju: "https://wa.me/6283456789012?text=Halo, saya mau tanya koleksi batik"
+            // },
+            // {
+            //     id: 6,
+            //     nama: "Keripik Mangga Dewata",
+            //     kategori: "probolinggo",
+            //     edu: "Rp 35.000/pack",
+            //     deskripsi: "Keripik mangga renyah khas Probolinggo! Dibuat dari mangga pilihan, tanpa pengawet, dan dikemas higienis. Tersedia varian: Original, Pedas Manis, dan BBQ. Cocok untuk oleh-oleh dan cemilan sehari-hari. Order minimal 5 pack untuk pengiriman luar kota.",
+            //     linkTuju: "https://tokopedia.com/keripik-mangga-dewata"
+            // },
+
+            // ============================================
+            // TAMBAHKAN PRODUK BARU DI BAWAH INI ⬇️
+            // ============================================
+            // Contoh format:
+            // {
+            //     id: 7,
+            //     nama: "Nama Usaha Baru",
+            //     kategori: "online", // pilih: online / surabaya / probolinggo
+            //     edu: "Rp XXX.XXX",
+            //     deskripsi: "Deskripsi lengkap produk atau layanan...",
+            //     linkTuju: "https://link-tuju.com"
+            // },
+
+        ];
+
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const productGrid = document.getElementById('productGrid');
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalClose = document.getElementById('modalClose');
+        const resultsCount = document.getElementById('resultsCount');
+
+        // ============================================
+        // RENDER PRODUCTS FUNCTION
+        // ============================================
+        function renderProducts(productsToRender) {
+            productGrid.innerHTML = '';
+
+            if (productsToRender.length === 0) {
+                productGrid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3 class="empty-title">Produk Tidak Ditemukan</h3>
+                        <p class="empty-text">Coba ubah kata kunci pencarian atau pilih kategori lain</p>
+                    </div>
+                `;
+                resultsCount.textContent = '0';
+                return;
+            }
+
+            resultsCount.textContent = productsToRender.length;
+
+            productsToRender.forEach((product, index) => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3 class="product-name">${product.nama}</h3>
+                        <span class="category-badge ${product.kategori}">${getCategoryLabel(product.kategori)}</span>
+                    </div>
+                    <div class="price-container">
+                        <p class="price-label">edu</p>
+                        <p class="product-price">${product.edu}</p>
+                    </div>
+                    <p class="product-preview">${product.deskripsi}</p>
+                    <div class="card-footer">
+                        <span class="view-detail">Lihat Detail</span>
+                        <span class="arrow-icon">→</span>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => openModal(product));
+                productGrid.appendChild(card);
+            });
+        }
+
+        // ============================================
+        // GET CATEGORY LABEL
+        // ============================================
+        function getCategoryLabel(kategori) {
+            const labels = {
+                'bby': 'cr bby',
+                'krb': 'cr krb',
+            };
+            return labels[kategori] || kategori;
+        }
+
+        // ============================================
+        // FILTER & SEARCH FUNCTION
+        // ============================================
+        function filterProducts() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedCategory = categoryFilter.value;
+
+            let filtered = products.filter(product => {
+                const matchesSearch = product.nama.toLowerCase().includes(searchTerm) ||
+                    product.deskripsi.toLowerCase().includes(searchTerm);
+                const matchesCategory = selectedCategory === 'all' ||
+                    product.kategori === selectedCategory;
+                return matchesSearch && matchesCategory;
+            });
+
+            renderProducts(filtered);
+        }
+
+        // ============================================
+        // MODAL FUNCTIONS
+        // ============================================
+        function openModal(product) {
+            document.getElementById('modalBadge').textContent = getCategoryLabel(product.kategori);
+            document.getElementById('modalBadge').className = `modal-badge ${product.kategori}`;
+            document.getElementById('modalTitle').textContent = product.nama;
+            document.getElementById('modalPrice').textContent = product.edu;
+            document.getElementById('modalDescription').textContent = product.deskripsi;
+            document.getElementById('modalCTA').href = product.linkTuju;
+
+            modalOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        searchInput.addEventListener('input', filterProducts);
+        categoryFilter.addEventListener('change', filterProducts);
+        modalClose.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // ============================================
+        // PARTICLE CANVAS ANIMATION
+        // ============================================
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let particles = [];
+        const particleCount = 80;
+        const connectionDistance = 150;
+        const mouseRadius = 120;
+
+        let mouse = {
+            x: null,
+            y: null
+        };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.8;
+                this.speedY = (Math.random() - 0.5) * 0.8;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Bounce off edges
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+
+                // Mouse interaction
+                if (mouse.x !== null && mouse.y !== null) {
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < mouseRadius) {
+                        const force = (mouseRadius - distance) / mouseRadius;
+                        this.x -= dx * force * 0.02;
+                        this.y -= dy * force * 0.02;
+                    }
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(102, 126, 234, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function connectParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < connectionDistance) {
+                        const opacity = 1 - (distance / connectionDistance);
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(118, 75, 162, ${opacity * 0.3})`;
+                        ctx.lineWidth = 1;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            connectParticles();
+            requestAnimationFrame(animateParticles);
+        }
+
+        // Mouse move event
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        // Mouse leave event
+        window.addEventListener('mouseleave', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        // Resize event
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            initParticles();
+        });
+
+        // Initialize
+        resizeCanvas();
+        initParticles();
+        animateParticles();
+
+        // Initial render
+        renderProducts(products);
+
+    </script>
+</body>
+
+</html>
