@@ -1,0 +1,2927 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🌱 PlantVision AI - Deteksi & Analisis Tanaman</title>
+
+    <!-- ============================================= -->
+    <!-- CDN Libraries -->
+    <!-- ============================================= -->
+    <!-- TensorFlow.js for AI/ML -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+    <!-- COCO-SSD for object detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+    <!-- Chart.js for growth charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- ============================================= -->
+    <!-- STYLES - Semua CSS dalam satu tag <style> -->
+    <!-- ============================================= -->
+    <style>
+        /* ===== CSS Variables / Tema ===== */
+        :root {
+            /* Light theme */
+            --bg-primary: #f0f7f0;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1a3a1a;
+            --text-secondary: #4a6a4a;
+            --text-muted: #7a9a7a;
+            --green-primary: #2d8a4e;
+            --green-secondary: #3da563;
+            --green-light: #e8f5e9;
+            --green-dark: #1b5e30;
+            --accent: #43a047;
+            --border: #c8e6c9;
+            --shadow: rgba(45, 138, 78, 0.1);
+            --shadow-strong: rgba(45, 138, 78, 0.2);
+            --danger: #e53935;
+            --warning: #ff9800;
+            --info: #1e88e5;
+            --success: #43a047;
+            --overlay: rgba(0, 0, 0, 0.5);
+            --card-radius: 16px;
+            --btn-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Dark theme */
+        [data-theme="dark"] {
+            --bg-primary: #0d1f0d;
+            --bg-secondary: #1a2e1a;
+            --bg-card: #1e3320;
+            --text-primary: #e0f0e0;
+            --text-secondary: #a0c8a0;
+            --text-muted: #6a9a6a;
+            --green-primary: #4caf50;
+            --green-secondary: #66bb6a;
+            --green-light: #1b3a1b;
+            --green-dark: #81c784;
+            --accent: #66bb6a;
+            --border: #2e5a30;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --shadow-strong: rgba(0, 0, 0, 0.5);
+            --overlay: rgba(0, 0, 0, 0.7);
+        }
+
+        /* ===== Reset & Base ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: var(--transition);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== Scrollbar Custom ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--green-primary);
+            border-radius: 3px;
+        }
+
+        /* ===== Header ===== */
+        .header {
+            background: linear-gradient(135deg, var(--green-dark), var(--green-primary), var(--green-secondary));
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px var(--shadow-strong);
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1 .logo-icon {
+            font-size: 1.6rem;
+            animation: pulse-leaf 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-leaf {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* ===== Theme Toggle ===== */
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(30deg);
+        }
+
+        /* ===== Navigation Tabs ===== */
+        .nav-tabs {
+            display: flex;
+            background: var(--bg-secondary);
+            max-width: 800px;
+            margin: 0 auto;
+            border-bottom: 2px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: fit-content;
+            padding: 14px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .nav-tab .tab-icon {
+            font-size: 1.2rem;
+        }
+
+        .nav-tab.active {
+            color: var(--green-primary);
+        }
+
+        .nav-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 10%;
+            width: 80%;
+            height: 3px;
+            background: var(--green-primary);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .nav-tab:hover {
+            color: var(--green-secondary);
+            background: var(--green-light);
+        }
+
+        /* ===== Main Container ===== */
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* ===== Tab Content ===== */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== Cards ===== */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px var(--shadow);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 20px var(--shadow-strong);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--green-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ===== Camera Section ===== */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 4/3;
+            margin-bottom: 12px;
+        }
+
+        #cameraVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        #detectionCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .camera-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            background: linear-gradient(135deg, #1a2e1a, #0d1f0d);
+        }
+
+        .camera-placeholder .cam-icon {
+            font-size: 4rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .camera-placeholder p {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            color: #aaa;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--btn-radius);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--green-primary), var(--green-secondary));
+            color: white;
+            box-shadow: 0 4px 15px rgba(45, 138, 78, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(45, 138, 78, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e53935, #ef5350);
+            color: white;
+            box-shadow: 0 4px 15px rgba(229, 57, 53, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--green-light);
+            color: var(--green-primary);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--green-primary);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9800, #ffa726);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #1e88e5, #42a5f5);
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        /* ===== Camera Controls ===== */
+        .camera-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .camera-controls .btn-capture {
+            grid-column: 1 / -1;
+        }
+
+        /* ===== Reference Object Selection ===== */
+        .reference-selector {
+            margin: 12px 0;
+        }
+
+        .reference-selector label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .reference-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .ref-option {
+            padding: 10px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .ref-option:hover, .ref-option.selected {
+            border-color: var(--green-primary);
+            background: var(--green-light);
+            color: var(--green-primary);
+        }
+
+        .ref-option .ref-icon {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* ===== Status Indicators ===== */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .status-bar.loading {
+            background: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ffcc80;
+        }
+
+        .status-bar.ready {
+            background: var(--green-light);
+            color: var(--green-primary);
+            border: 1px solid var(--border);
+        }
+
+        .status-bar.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+
+        [data-theme="dark"] .status-bar.loading {
+            background: #3e2723;
+            border-color: #5d4037;
+        }
+
+        [data-theme="dark"] .status-bar.error {
+            background: #3e1a1a;
+            border-color: #5a2a2a;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== Analysis Results ===== */
+        .analysis-results {
+            display: none;
+            animation: slideUp 0.5s ease;
+        }
+
+        .analysis-results.visible {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .result-item {
+            background: var(--green-light);
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .result-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .result-item .result-icon {
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+        }
+
+        .result-item .result-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-item .result-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--green-primary);
+            margin-top: 4px;
+        }
+
+        .result-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* ===== Condition Badge ===== */
+        .condition-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .condition-badge.sangat-baik {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .condition-badge.baik {
+            background: #f1f8e9;
+            color: #558b2f;
+        }
+        .condition-badge.cukup {
+            background: #fff8e1;
+            color: #f9a825;
+        }
+        .condition-badge.kurang {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        .condition-badge.buruk {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* ===== Recommendations ===== */
+        .recommendation-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendation-list li {
+            padding: 12px 16px;
+            background: var(--green-light);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            border-left: 4px solid var(--green-primary);
+            transition: var(--transition);
+        }
+
+        .recommendation-list li:hover {
+            transform: translateX(4px);
+        }
+
+        .recommendation-list li .rec-icon {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* ===== History Section ===== */
+        .history-item {
+            display: flex;
+            gap: 12px;
+            padding: 14px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            box-shadow: 0 4px 12px var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .history-thumbnail {
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: var(--green-light);
+        }
+
+        .history-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-info .history-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .history-info .history-height {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--green-primary);
+        }
+
+        .history-info .history-status {
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+
+        .history-info .history-note {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-actions {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .history-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .history-actions button:hover {
+            background: var(--green-light);
+        }
+
+        .no-history {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .no-history .no-history-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* ===== Chart Container ===== */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin: 12px 0;
+        }
+
+        /* ===== Captured Image Preview ===== */
+        .captured-preview {
+            display: none;
+            margin-bottom: 12px;
+        }
+
+        .captured-preview.visible {
+            display: block;
+        }
+
+        .captured-preview img {
+            width: 100%;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+        }
+
+        /* ===== Note Input ===== */
+        .note-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .note-input:focus {
+            outline: none;
+            border-color: var(--green-primary);
+            box-shadow: 0 0 0 3px rgba(45, 138, 78, 0.1);
+        }
+
+        /* ===== Modal ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: var(--card-radius);
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-header h3 {
+            font-size: 1.1rem;
+            color: var(--green-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 4px;
+        }
+
+        /* ===== Info Section ===== */
+        .info-box {
+            background: var(--green-light);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            margin: 12px 0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .info-box .info-icon {
+            margin-right: 6px;
+        }
+
+        /* ===== About page ===== */
+        .about-feature {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .about-feature:last-child {
+            border-bottom: none;
+        }
+
+        .about-feature .feature-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .about-feature h4 {
+            font-size: 0.95rem;
+            color: var(--green-primary);
+            margin-bottom: 4px;
+        }
+
+        .about-feature p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ===== Limitations Notice ===== */
+        .limitations-notice {
+            background: #fff8e1;
+            border: 1px solid #ffcc80;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 12px 0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        [data-theme="dark"] .limitations-notice {
+            background: #3e2723;
+            border-color: #5d4037;
+            color: #ffcc80;
+        }
+
+        .limitations-notice h4 {
+            color: #e65100;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .limitations-notice ul {
+            margin-left: 20px;
+        }
+
+        .limitations-notice li {
+            margin-bottom: 4px;
+        }
+
+        /* ===== Toast Notification ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 300;
+        }
+
+        .toast {
+            background: var(--green-dark);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s;
+            white-space: nowrap;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* ===== Loading overlay ===== */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay);
+            z-index: 250;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            color: white;
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        .loading-overlay .big-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.1rem;
+            }
+
+            .nav-tab {
+                padding: 10px 8px;
+                font-size: 0.75rem;
+            }
+
+            .nav-tab .tab-icon {
+                font-size: 1.1rem;
+            }
+
+            .result-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .reference-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+            }
+
+            .main-container {
+                padding: 12px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .result-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .reference-options {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* ===== Hidden canvas for capture ===== */
+        #captureCanvas {
+            display: none;
+        }
+
+        /* ===== Progress bar for detection confidence ===== */
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .confidence-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--green-primary), var(--green-secondary));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* ===== Color swatch ===== */
+        .color-swatch {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 2px solid var(--border);
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        /* ===== Plant detection frame indicator ===== */
+        .detection-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        /* ===== Clear history button area ===== */
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        /* Estimation disclaimer */
+        .estimation-note {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            color: #1565c0;
+            margin-top: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        [data-theme="dark"] .estimation-note {
+            background: #0d2137;
+            border-color: #1565c0;
+            color: #64b5f6;
+        }
+    </style>
+</head>
+
+<body data-theme="light">
+
+    <!-- ============================================= -->
+    <!-- HEADER -->
+    <!-- ============================================= -->
+    <header class="header">
+        <div class="header-content">
+            <h1>
+                <span class="logo-icon">🌱</span>
+                PlantVision AI
+            </h1>
+            <div class="header-actions">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Mode Terang/Gelap">
+                    🌙
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================= -->
+    <!-- NAVIGATION TABS -->
+    <!-- ============================================= -->
+    <nav class="nav-tabs" id="navTabs">
+        <button class="nav-tab active" data-tab="camera">
+            <span class="tab-icon">📷</span>
+            Kamera
+        </button>
+        <button class="nav-tab" data-tab="analysis">
+            <span class="tab-icon">🔬</span>
+            Analisis
+        </button>
+        <button class="nav-tab" data-tab="history">
+            <span class="tab-icon">📊</span>
+            Riwayat
+        </button>
+        <button class="nav-tab" data-tab="about">
+            <span class="tab-icon">ℹ️</span>
+            Info
+        </button>
+    </nav>
+
+    <!-- ============================================= -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================================= -->
+    <main class="main-container">
+
+        <!-- ===== TAB: KAMERA ===== -->
+        <div class="tab-content active" id="tab-camera">
+
+            <!-- Status Bar -->
+            <div class="status-bar loading" id="modelStatus">
+                <span class="spinner"></span>
+                <span>Memuat model AI... Harap tunggu.</span>
+            </div>
+
+            <!-- Camera Card -->
+            <div class="card">
+                <div class="card-title">📷 Kamera Langsung</div>
+
+                <!-- Camera View -->
+                <div class="camera-container" id="cameraContainer">
+                    <video id="cameraVideo" autoplay playsinline muted></video>
+                    <canvas id="detectionCanvas"></canvas>
+                    <div class="camera-placeholder" id="cameraPlaceholder">
+                        <span class="cam-icon">📸</span>
+                        <p>Tekan "Mulai Kamera" untuk memulai</p>
+                    </div>
+                </div>
+
+                <p class="detection-info" id="detectionInfo">Model AI akan mendeteksi tanaman secara otomatis</p>
+
+                <!-- Camera Controls -->
+                <div class="camera-controls">
+                    <button class="btn btn-primary" id="btnStartCamera">
+                        ▶️ Mulai Kamera
+                    </button>
+                    <button class="btn btn-danger" id="btnStopCamera" disabled>
+                        ⏹️ Hentikan
+                    </button>
+                    <button class="btn btn-primary btn-capture" id="btnCapture" disabled>
+                        📸 Tangkap & Analisis
+                    </button>
+                </div>
+            </div>
+
+            <!-- Reference Object Selector -->
+            <div class="card">
+                <div class="card-title">📏 Objek Referensi (Opsional)</div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+                    Letakkan objek referensi di samping tanaman untuk pengukuran yang lebih akurat.
+                </p>
+                <div class="reference-options" id="referenceOptions">
+                    <div class="ref-option" data-ref="none" data-size="0">
+                        <span class="ref-icon">❌</span>
+                        Tanpa Referensi
+                    </div>
+                    <div class="ref-option" data-ref="card" data-size="8.56">
+                        <span class="ref-icon">💳</span>
+                        Kartu ATM (8.56 cm)
+                    </div>
+                    <div class="ref-option" data-ref="ruler" data-size="30">
+                        <span class="ref-icon">📏</span>
+                        Penggaris (30 cm)
+                    </div>
+                    <div class="ref-option selected" data-ref="a4" data-size="29.7">
+                        <span class="ref-icon">📄</span>
+                        Kertas A4 (29.7 cm)
+                    </div>
+                </div>
+
+                <div class="info-box" style="margin-top: 12px;">
+                    <span class="info-icon">💡</span>
+                    <strong>Tips:</strong> Letakkan objek referensi sejajar vertikal dengan tanaman agar estimasi tinggi lebih akurat. Pastikan objek referensi terlihat jelas dalam frame kamera.
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: ANALISIS ===== -->
+        <div class="tab-content" id="tab-analysis">
+
+            <!-- Captured Image -->
+            <div class="captured-preview" id="capturedPreview">
+                <div class="card">
+                    <div class="card-title">📸 Gambar yang Ditangkap</div>
+                    <img id="capturedImage" alt="Captured plant" />
+                </div>
+            </div>
+
+            <!-- No Analysis Yet -->
+            <div class="card" id="noAnalysis">
+                <div style="text-align: center; padding: 30px 0; color: var(--text-muted);">
+                    <div style="font-size: 3rem; margin-bottom: 12px;">🔬</div>
+                    <h3 style="margin-bottom: 8px;">Belum Ada Analisis</h3>
+                    <p style="font-size: 0.9rem;">Tangkap gambar tanaman dari tab Kamera untuk memulai analisis.</p>
+                </div>
+            </div>
+
+            <!-- Analysis Results -->
+            <div class="analysis-results" id="analysisResults">
+
+                <!-- Detection confidence -->
+                <div class="card">
+                    <div class="card-title">🎯 Deteksi Tanaman</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Confidence:</span>
+                        <strong id="confidenceValue">0%</strong>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="fill" id="confidenceBar" style="width: 0%"></div>
+                    </div>
+                    <div class="estimation-note" id="estimationNote" style="display: none;">
+                        <span>ℹ️</span>
+                        <span>Hasil merupakan <strong>estimasi/perkiraan</strong>. Pengukuran presisi memerlukan sensor khusus atau kalibrasi manual.</span>
+                    </div>
+                </div>
+
+                <!-- Measurement Results -->
+                <div class="card">
+                    <div class="card-title">📊 Hasil Pengukuran</div>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-icon">📏</div>
+                            <div class="result-label">Tinggi</div>
+                            <div class="result-value" id="resultHeight">- cm</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-icon">🍃</div>
+                            <div class="result-label">Est. Jumlah Daun</div>
+                            <div class="result-value" id="resultLeaves">-</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-icon">🎨</div>
+                            <div class="result-label">Warna Daun</div>
+                            <div class="result-value" id="resultColor">-</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-icon">🟡</div>
+                            <div class="result-label">Daun Menguning</div>
+                            <div class="result-value" id="resultYellowing">-</div>
+                        </div>
+                        <div class="result-item full-width">
+                            <div class="result-icon">📋</div>
+                            <div class="result-label">Kondisi Pertumbuhan</div>
+                            <div class="result-value" id="resultCondition">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Growth Assessment -->
+                <div class="card">
+                    <div class="card-title">📝 Penilaian</div>
+                    <p id="assessmentReason" style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary);">-</p>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="card">
+                    <div class="card-title">💡 Rekomendasi</div>
+                    <ul class="recommendation-list" id="recommendationList">
+                        <!-- Populated dynamically -->
+                    </ul>
+                </div>
+
+                <!-- Note & Save -->
+                <div class="card">
+                    <div class="card-title">📝 Catatan</div>
+                    <textarea class="note-input" id="analysisNote" placeholder="Tambahkan catatan tentang tanaman ini..."></textarea>
+                    <div style="margin-top: 12px;">
+                        <button class="btn btn-primary" id="btnSaveAnalysis" style="width: 100%;">
+                            💾 Simpan ke Riwayat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: RIWAYAT ===== -->
+        <div class="tab-content" id="tab-history">
+            <div class="card">
+                <div class="history-header">
+                    <div class="card-title" style="margin-bottom: 0;">📊 Riwayat Pertumbuhan</div>
+                    <button class="btn btn-danger" id="btnClearHistory" style="padding: 8px 12px; font-size: 0.8rem;">
+                        🗑️ Hapus Semua
+                    </button>
+                </div>
+                <div id="historyList">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Growth Chart -->
+            <div class="card">
+                <div class="card-title">📈 Grafik Pertumbuhan</div>
+                <div class="chart-container">
+                    <canvas id="growthChart"></canvas>
+                </div>
+                <div id="noChartData" style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.9rem;">
+                    Belum ada data untuk ditampilkan dalam grafik.
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: INFO ===== -->
+        <div class="tab-content" id="tab-about">
+            <div class="card">
+                <div class="card-title">🌱 Tentang PlantVision AI</div>
+                <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 16px;">
+                    PlantVision AI adalah aplikasi web berbasis AI untuk mendeteksi, mengukur, dan menganalisis pertumbuhan tanaman menggunakan kamera perangkat Anda. Sepenuhnya berjalan di browser tanpa perlu server.
+                </p>
+
+                <div class="about-feature">
+                    <span class="feature-icon">📷</span>
+                    <div>
+                        <h4>Deteksi Kamera</h4>
+                        <p>Menggunakan WebRTC/getUserMedia untuk mengakses kamera perangkat. Mendukung kamera belakang pada perangkat mobile.</p>
+                    </div>
+                </div>
+
+                <div class="about-feature">
+                    <span class="feature-icon">🤖</span>
+                    <div>
+                        <h4>AI Computer Vision</h4>
+                        <p>Menggunakan TensorFlow.js dengan model COCO-SSD untuk deteksi objek. Model berjalan sepenuhnya di browser menggunakan WebGL.</p>
+                    </div>
+                </div>
+
+                <div class="about-feature">
+                    <span class="feature-icon">📏</span>
+                    <div>
+                        <h4>Pengukuran Tinggi</h4>
+                        <p>Estimasi tinggi tanaman berdasarkan analisis piksel dengan kalibrasi menggunakan objek referensi (kartu ATM, penggaris, kertas A4).</p>
+                    </div>
+                </div>
+
+                <div class="about-feature">
+                    <span class="feature-icon">🎨</span>
+                    <div>
+                        <h4>Analisis Warna</h4>
+                        <p>Menganalisis warna dominan tanaman melalui pengambilan sampel piksel di area hijau untuk mendeteksi kesehatan daun.</p>
+                    </div>
+                </div>
+
+                <div class="about-feature">
+                    <span class="feature-icon">📊</span>
+                    <div>
+                        <h4>Grafik Pertumbuhan</h4>
+                        <p>Visualisasi perkembangan tinggi tanaman dari waktu ke waktu menggunakan Chart.js.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Limitations -->
+            <div class="limitations-notice">
+                <h4>⚠️ Keterbatasan Aplikasi</h4>
+                <ul>
+                    <li><strong>Tinggi tanaman:</strong> Hasil pengukuran adalah estimasi berdasarkan rasio piksel. Akurasi sangat bergantung pada sudut kamera, jarak, dan ketersediaan objek referensi.</li>
+                    <li><strong>Deteksi tanaman:</strong> Model COCO-SSD mendeteksi "potted plant" dan objek umum lainnya. Tidak semua jenis tanaman terdeteksi.</li>
+                    <li><strong>Jumlah daun:</strong> Estimasi berdasarkan analisis tekstur area hijau, bukan penghitungan daun individual.</li>
+                    <li><strong>Warna daun:</strong> Bergantung pada pencahayaan dan kualitas kamera perangkat.</li>
+                    <li><strong>Untuk pengukuran presisi</strong>, gunakan alat ukur fisik atau sensor khusus.</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📱 Kompatibilitas</div>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
+                    ✅ Chrome Android 80+<br>
+                    ✅ Safari iOS 14.3+<br>
+                    ✅ Chrome Desktop 80+<br>
+                    ✅ Firefox 76+<br>
+                    ✅ Edge 80+<br><br>
+                    <strong>Catatan:</strong> Diperlukan koneksi internet untuk memuat library AI pada penggunaan pertama. Setelah itu, model akan di-cache oleh browser.
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================================= -->
+    <!-- HIDDEN CANVAS FOR CAPTURE -->
+    <!-- ============================================= -->
+    <canvas id="captureCanvas"></canvas>
+
+    <!-- ============================================= -->
+    <!-- TOAST CONTAINER -->
+    <!-- ============================================= -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ============================================= -->
+    <!-- LOADING OVERLAY -->
+    <!-- ============================================= -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="big-spinner"></div>
+        <div id="loadingText">Menganalisis tanaman...</div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- DETAIL MODAL -->
+    <!-- ============================================= -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📋 Detail Riwayat</h3>
+                <button class="modal-close" id="btnCloseModal">&times;</button>
+            </div>
+            <div id="modalContent">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- JAVASCRIPT - Semua logic dalam satu tag <script> -->
+    <!-- ============================================= -->
+    <script>
+    /* ===========================================================
+       PlantVision AI - Main Application Script
+       Semua JavaScript berada dalam tag <script> ini.
+       =========================================================== */
+
+    // ============================================
+    // 1. GLOBAL VARIABLES & STATE
+    // ============================================
+    const APP_STATE = {
+        cameraStream: null,          // MediaStream dari kamera
+        isCameraActive: false,       // Status kamera
+        model: null,                 // Model COCO-SSD TensorFlow.js
+        isModelLoaded: false,        // Status loading model
+        isDetecting: false,          // Apakah sedang mendeteksi
+        detectionLoop: null,         // requestAnimationFrame ID
+        selectedReference: 'a4',     // Objek referensi yang dipilih
+        referenceSize: 29.7,         // Ukuran objek referensi dalam cm
+        currentAnalysis: null,       // Hasil analisis saat ini
+        capturedImageData: null,     // Data gambar yang ditangkap
+        growthChart: null,           // Instance Chart.js
+        lastDetections: [],          // Deteksi terakhir
+    };
+
+    // Konstanta warna untuk analisis
+    const LEAF_COLORS = {
+        darkGreen: { name: 'Hijau Tua', hex: '#2e7d32', r: 46, g: 125, b: 50 },
+        green: { name: 'Hijau', hex: '#4caf50', r: 76, g: 175, b: 80 },
+        lightGreen: { name: 'Hijau Muda', hex: '#8bc34a', r: 139, g: 195, b: 74 },
+        yellowGreen: { name: 'Kuning Kehijauan', hex: '#cddc39', r: 205, g: 220, b: 57 },
+        yellow: { name: 'Kuning', hex: '#ffeb3b', r: 255, g: 235, b: 59 },
+        brown: { name: 'Coklat', hex: '#795548', r: 121, g: 85, b: 72 },
+    };
+
+    // ============================================
+    // 2. DOM ELEMENT REFERENCES
+    // ============================================
+    const DOM = {
+        // Camera
+        video: document.getElementById('cameraVideo'),
+        detectionCanvas: document.getElementById('detectionCanvas'),
+        captureCanvas: document.getElementById('captureCanvas'),
+        cameraPlaceholder: document.getElementById('cameraPlaceholder'),
+        cameraContainer: document.getElementById('cameraContainer'),
+        btnStartCamera: document.getElementById('btnStartCamera'),
+        btnStopCamera: document.getElementById('btnStopCamera'),
+        btnCapture: document.getElementById('btnCapture'),
+        detectionInfo: document.getElementById('detectionInfo'),
+
+        // Status
+        modelStatus: document.getElementById('modelStatus'),
+
+        // Reference
+        referenceOptions: document.getElementById('referenceOptions'),
+
+        // Analysis
+        capturedPreview: document.getElementById('capturedPreview'),
+        capturedImage: document.getElementById('capturedImage'),
+        noAnalysis: document.getElementById('noAnalysis'),
+        analysisResults: document.getElementById('analysisResults'),
+        confidenceValue: document.getElementById('confidenceValue'),
+        confidenceBar: document.getElementById('confidenceBar'),
+        estimationNote: document.getElementById('estimationNote'),
+        resultHeight: document.getElementById('resultHeight'),
+        resultLeaves: document.getElementById('resultLeaves'),
+        resultColor: document.getElementById('resultColor'),
+        resultYellowing: document.getElementById('resultYellowing'),
+        resultCondition: document.getElementById('resultCondition'),
+        assessmentReason: document.getElementById('assessmentReason'),
+        recommendationList: document.getElementById('recommendationList'),
+        analysisNote: document.getElementById('analysisNote'),
+        btnSaveAnalysis: document.getElementById('btnSaveAnalysis'),
+
+        // History
+        historyList: document.getElementById('historyList'),
+        btnClearHistory: document.getElementById('btnClearHistory'),
+        growthChartCanvas: document.getElementById('growthChart'),
+        noChartData: document.getElementById('noChartData'),
+
+        // UI
+        navTabs: document.getElementById('navTabs'),
+        themeToggle: document.getElementById('themeToggle'),
+        toastContainer: document.getElementById('toastContainer'),
+        loadingOverlay: document.getElementById('loadingOverlay'),
+        loadingText: document.getElementById('loadingText'),
+        detailModal: document.getElementById('detailModal'),
+        modalContent: document.getElementById('modalContent'),
+        btnCloseModal: document.getElementById('btnCloseModal'),
+    };
+
+    // ============================================
+    // 3. INITIALIZATION
+    // ============================================
+
+    /**
+     * Inisialisasi aplikasi saat halaman dimuat
+     */
+    document.addEventListener('DOMContentLoaded', async () => {
+        console.log('🌱 PlantVision AI - Initializing...');
+
+        // Load tema dari localStorage
+        loadTheme();
+
+        // Setup event listeners
+        setupEventListeners();
+
+        // Render riwayat
+        renderHistory();
+
+        // Update grafik
+        updateGrowthChart();
+
+        // Load AI model
+        await loadModel();
+    });
+
+    /**
+     * Memuat model COCO-SSD TensorFlow.js
+     */
+    async function loadModel() {
+        try {
+            updateModelStatus('loading', 'Memuat model AI... Ini mungkin memakan waktu beberapa saat.');
+
+            // Load COCO-SSD model
+            APP_STATE.model = await cocoSsd.load({
+                base: 'lite_mobilenet_v2'  // Model ringan, cocok untuk mobile
+            });
+
+            APP_STATE.isModelLoaded = true;
+            updateModelStatus('ready', '✅ Model AI siap! Anda dapat mulai mendeteksi tanaman.');
+            console.log('✅ COCO-SSD model loaded successfully');
+
+        } catch (error) {
+            console.error('❌ Failed to load model:', error);
+            updateModelStatus('error', '❌ Gagal memuat model AI. Periksa koneksi internet dan muat ulang halaman.');
+        }
+    }
+
+    // ============================================
+    // 4. EVENT LISTENERS SETUP
+    // ============================================
+
+    function setupEventListeners() {
+        // Tab navigation
+        DOM.navTabs.addEventListener('click', (e) => {
+            const tab = e.target.closest('.nav-tab');
+            if (tab) switchTab(tab.dataset.tab);
+        });
+
+        // Theme toggle
+        DOM.themeToggle.addEventListener('click', toggleTheme);
+
+        // Camera buttons
+        DOM.btnStartCamera.addEventListener('click', startCamera);
+        DOM.btnStopCamera.addEventListener('click', stopCamera);
+        DOM.btnCapture.addEventListener('click', captureAndAnalyze);
+
+        // Reference object selection
+        DOM.referenceOptions.addEventListener('click', (e) => {
+            const option = e.target.closest('.ref-option');
+            if (option) selectReference(option);
+        });
+
+        // Save analysis
+        DOM.btnSaveAnalysis.addEventListener('click', saveToHistory);
+
+        // Clear history
+        DOM.btnClearHistory.addEventListener('click', clearHistory);
+
+        // Modal close
+        DOM.btnCloseModal.addEventListener('click', closeModal);
+        DOM.detailModal.addEventListener('click', (e) => {
+            if (e.target === DOM.detailModal) closeModal();
+        });
+    }
+
+    // ============================================
+    // 5. TAB NAVIGATION
+    // ============================================
+
+    /**
+     * Berpindah antar tab
+     */
+    function switchTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+
+        // Update chart if switching to history tab
+        if (tabName === 'history') {
+            updateGrowthChart();
+        }
+    }
+
+    // ============================================
+    // 6. THEME MANAGEMENT
+    // ============================================
+
+    function toggleTheme() {
+        const currentTheme = document.body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', newTheme);
+        DOM.themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        localStorage.setItem('plantvision-theme', newTheme);
+    }
+
+    function loadTheme() {
+        const savedTheme = localStorage.getItem('plantvision-theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        DOM.themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    }
+
+    // ============================================
+    // 7. CAMERA MANAGEMENT
+    // ============================================
+
+    /**
+     * Mulai kamera - menggunakan kamera belakang jika tersedia
+     */
+    async function startCamera() {
+        try {
+            // Constraints: prioritaskan kamera belakang (environment)
+            const constraints = {
+                video: {
+                    facingMode: { ideal: 'environment' },  // Kamera belakang
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                },
+                audio: false
+            };
+
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            APP_STATE.cameraStream = stream;
+            APP_STATE.isCameraActive = true;
+
+            DOM.video.srcObject = stream;
+            DOM.cameraPlaceholder.style.display = 'none';
+
+            // Wait for video to be ready
+            DOM.video.addEventListener('loadedmetadata', () => {
+                // Set canvas size to match video
+                DOM.detectionCanvas.width = DOM.video.videoWidth;
+                DOM.detectionCanvas.height = DOM.video.videoHeight;
+
+                // Start detection loop if model is loaded
+                if (APP_STATE.isModelLoaded) {
+                    startDetectionLoop();
+                }
+            }, { once: true });
+
+            // Update UI
+            DOM.btnStartCamera.disabled = true;
+            DOM.btnStopCamera.disabled = false;
+            DOM.btnCapture.disabled = false;
+
+            showToast('📷 Kamera aktif');
+
+        } catch (error) {
+            console.error('Camera error:', error);
+
+            if (error.name === 'NotAllowedError') {
+                showToast('⚠️ Izin kamera ditolak. Aktifkan izin kamera di pengaturan browser.');
+                updateModelStatus('error', '⚠️ Izin kamera ditolak. Buka pengaturan browser > Izin Situs > Kamera, lalu izinkan akses kamera.');
+            } else if (error.name === 'NotFoundError') {
+                showToast('❌ Kamera tidak ditemukan pada perangkat ini.');
+            } else if (error.name === 'NotReadableError') {
+                showToast('❌ Kamera sedang digunakan oleh aplikasi lain.');
+            } else {
+                showToast('❌ Gagal mengakses kamera: ' + error.message);
+            }
+        }
+    }
+
+    /**
+     * Hentikan kamera
+     */
+    function stopCamera() {
+        if (APP_STATE.cameraStream) {
+            APP_STATE.cameraStream.getTracks().forEach(track => track.stop());
+            APP_STATE.cameraStream = null;
+        }
+
+        APP_STATE.isCameraActive = false;
+        APP_STATE.isDetecting = false;
+
+        if (APP_STATE.detectionLoop) {
+            cancelAnimationFrame(APP_STATE.detectionLoop);
+            APP_STATE.detectionLoop = null;
+        }
+
+        DOM.video.srcObject = null;
+        DOM.cameraPlaceholder.style.display = 'flex';
+
+        // Clear detection canvas
+        const ctx = DOM.detectionCanvas.getContext('2d');
+        ctx.clearRect(0, 0, DOM.detectionCanvas.width, DOM.detectionCanvas.height);
+
+        // Update UI
+        DOM.btnStartCamera.disabled = false;
+        DOM.btnStopCamera.disabled = true;
+        DOM.btnCapture.disabled = true;
+        DOM.detectionInfo.textContent = 'Model AI akan mendeteksi tanaman secara otomatis';
+
+        showToast('⏹️ Kamera dihentikan');
+    }
+
+    // ============================================
+    // 8. REAL-TIME DETECTION LOOP
+    // ============================================
+
+    /**
+     * Loop deteksi objek secara real-time
+     */
+    function startDetectionLoop() {
+        if (!APP_STATE.isModelLoaded || !APP_STATE.isCameraActive) return;
+
+        APP_STATE.isDetecting = true;
+        detectFrame();
+    }
+
+    async function detectFrame() {
+        if (!APP_STATE.isDetecting || !APP_STATE.isCameraActive) return;
+
+        try {
+            // Run detection
+            const predictions = await APP_STATE.model.detect(DOM.video);
+
+            // Filter for plant-related detections
+            const plantDetections = predictions.filter(p =>
+                p.class === 'potted plant' ||
+                p.class === 'vase' ||
+                p.class === 'flower' ||
+                p.class === 'tree' ||
+                p.class === 'broccoli'  // Sometimes plants are detected as broccoli
+            );
+
+            APP_STATE.lastDetections = plantDetections;
+
+            // Draw bounding boxes
+            drawDetections(plantDetections, predictions);
+
+            // Update detection info
+            if (plantDetections.length > 0) {
+                const best = plantDetections[0];
+                DOM.detectionInfo.textContent =
+                    `🌿 Tanaman terdeteksi: ${plantDetections.length} | Confidence: ${(best.score * 100).toFixed(1)}%`;
+            } else {
+                DOM.detectionInfo.textContent = '🔍 Mencari tanaman... Arahkan kamera ke tanaman.';
+            }
+
+        } catch (error) {
+            console.error('Detection error:', error);
+        }
+
+        // Continue detection loop (~10 FPS to save battery)
+        APP_STATE.detectionLoop = setTimeout(() => {
+            requestAnimationFrame(detectFrame);
+        }, 100);
+    }
+
+    /**
+     * Gambar bounding box dan label pada canvas
+     */
+    function drawDetections(plantDetections, allDetections) {
+        const ctx = DOM.detectionCanvas.getContext('2d');
+        const canvas = DOM.detectionCanvas;
+
+        // Scale factors (canvas coordinates vs display coordinates)
+        const scaleX = canvas.width / DOM.video.videoWidth;
+        const scaleY = canvas.height / DOM.video.videoHeight;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw plant detections (green boxes)
+        plantDetections.forEach(detection => {
+            const [x, y, width, height] = detection.bbox;
+            const score = (detection.score * 100).toFixed(1);
+
+            // Bounding box
+            ctx.strokeStyle = '#4caf50';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, width, height);
+
+            // Corner markers
+            const cornerLen = 20;
+            ctx.strokeStyle = '#00e676';
+            ctx.lineWidth = 4;
+
+            // Top-left corner
+            ctx.beginPath();
+            ctx.moveTo(x, y + cornerLen);
+            ctx.lineTo(x, y);
+            ctx.lineTo(x + cornerLen, y);
+            ctx.stroke();
+
+            // Top-right corner
+            ctx.beginPath();
+            ctx.moveTo(x + width - cornerLen, y);
+            ctx.lineTo(x + width, y);
+            ctx.lineTo(x + width, y + cornerLen);
+            ctx.stroke();
+
+            // Bottom-left corner
+            ctx.beginPath();
+            ctx.moveTo(x, y + height - cornerLen);
+            ctx.lineTo(x, y + height);
+            ctx.lineTo(x + cornerLen, y + height);
+            ctx.stroke();
+
+            // Bottom-right corner
+            ctx.beginPath();
+            ctx.moveTo(x + width - cornerLen, y + height);
+            ctx.lineTo(x + width, y + height);
+            ctx.lineTo(x + width, y + height - cornerLen);
+            ctx.stroke();
+
+            // Label background
+            const label = `🌿 ${detection.class} ${score}%`;
+            ctx.font = 'bold 14px Arial';
+            const textWidth = ctx.measureText(label).width;
+            ctx.fillStyle = 'rgba(76, 175, 80, 0.85)';
+            ctx.fillRect(x, y - 28, textWidth + 12, 26);
+
+            // Label text
+            ctx.fillStyle = 'white';
+            ctx.fillText(label, x + 6, y - 10);
+
+            // Height measurement line
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = '#ffeb3b';
+            ctx.lineWidth = 2;
+            const centerX = x + width / 2;
+            ctx.beginPath();
+            ctx.moveTo(centerX, y);
+            ctx.lineTo(centerX, y + height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Height label at center
+            ctx.fillStyle = 'rgba(255, 235, 59, 0.85)';
+            ctx.fillRect(centerX + 5, y + height / 2 - 12, 50, 22);
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText(`${height.toFixed(0)}px`, centerX + 10, y + height / 2 + 3);
+        });
+    }
+
+    // ============================================
+    // 9. REFERENCE OBJECT SELECTION
+    // ============================================
+
+    function selectReference(option) {
+        // Remove selected from all
+        document.querySelectorAll('.ref-option').forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+
+        APP_STATE.selectedReference = option.dataset.ref;
+        APP_STATE.referenceSize = parseFloat(option.dataset.size);
+
+        showToast(`📏 Referensi: ${option.textContent.trim()}`);
+    }
+
+    // ============================================
+    // 10. CAPTURE & ANALYSIS
+    // ============================================
+
+    /**
+     * Tangkap gambar dari kamera dan jalankan analisis
+     */
+    async function captureAndAnalyze() {
+        if (!APP_STATE.isCameraActive) {
+            showToast('⚠️ Aktifkan kamera terlebih dahulu');
+            return;
+        }
+
+        // Show loading
+        showLoading('📸 Menangkap gambar dan menganalisis tanaman...');
+
+        try {
+            // Capture frame from video
+            const canvas = DOM.captureCanvas;
+            canvas.width = DOM.video.videoWidth;
+            canvas.height = DOM.video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(DOM.video, 0, 0);
+
+            // Get image data
+            APP_STATE.capturedImageData = canvas.toDataURL('image/jpeg', 0.8);
+
+            // Run detection on captured frame
+            showLoading('🤖 Menjalankan AI detection...');
+            const predictions = await APP_STATE.model.detect(canvas);
+
+            // Filter plant detections
+            const plantDetections = predictions.filter(p =>
+                p.class === 'potted plant' ||
+                p.class === 'vase' ||
+                p.class === 'flower' ||
+                p.class === 'tree' ||
+                p.class === 'broccoli'
+            );
+
+            // Run color analysis on the image
+            showLoading('🎨 Menganalisis warna dan kesehatan tanaman...');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+            // Perform full analysis
+            const analysis = performPlantAnalysis(
+                imageData,
+                canvas.width,
+                canvas.height,
+                plantDetections
+            );
+
+            APP_STATE.currentAnalysis = analysis;
+
+            // Draw bounding boxes on captured image
+            drawAnalysisOnCapture(ctx, plantDetections, analysis);
+            APP_STATE.capturedImageData = canvas.toDataURL('image/jpeg', 0.85);
+
+            // Display results
+            displayAnalysisResults(analysis);
+
+            // Switch to analysis tab
+            switchTab('analysis');
+
+            hideLoading();
+            showToast('✅ Analisis selesai!');
+
+        } catch (error) {
+            console.error('Analysis error:', error);
+            hideLoading();
+            showToast('❌ Gagal menganalisis: ' + error.message);
+        }
+    }
+
+    /**
+     * Analisis lengkap tanaman dari data gambar
+     */
+    function performPlantAnalysis(imageData, width, height, detections) {
+        // Determine plant region
+        let plantRegion;
+        let confidence = 0;
+        let detected = false;
+
+        if (detections.length > 0) {
+            // Use the detection with highest confidence
+            const best = detections.reduce((a, b) => a.score > b.score ? a : b);
+            plantRegion = {
+                x: Math.round(best.bbox[0]),
+                y: Math.round(best.bbox[1]),
+                width: Math.round(best.bbox[2]),
+                height: Math.round(best.bbox[3]),
+            };
+            confidence = best.score;
+            detected = true;
+        } else {
+            // No detection - use center region as estimate
+            plantRegion = {
+                x: Math.round(width * 0.2),
+                y: Math.round(height * 0.1),
+                width: Math.round(width * 0.6),
+                height: Math.round(height * 0.8),
+            };
+            confidence = 0.3; // Low confidence estimation
+        }
+
+        // Analyze color in the plant region
+        const colorAnalysis = analyzeColors(imageData, width, plantRegion);
+
+        // Estimate height
+        const heightEstimate = estimateHeight(plantRegion, height);
+
+        // Estimate leaf count based on green pixel clusters
+        const leafEstimate = estimateLeafCount(imageData, width, plantRegion);
+
+        // Determine growth condition
+        const condition = assessGrowthCondition(
+            heightEstimate.cm,
+            colorAnalysis,
+            leafEstimate
+        );
+
+        // Generate recommendations
+        const recommendations = generateRecommendations(condition, colorAnalysis);
+
+        return {
+            detected,
+            confidence,
+            plantRegion,
+            height: heightEstimate,
+            leafCount: leafEstimate,
+            color: colorAnalysis,
+            condition,
+            recommendations,
+            timestamp: new Date().toISOString(),
+        };
+    }
+
+    /**
+     * Analisis warna piksel di area tanaman
+     */
+    function analyzeColors(imageData, imgWidth, region) {
+        const data = imageData.data;
+        let greenPixels = 0;
+        let yellowPixels = 0;
+        let brownPixels = 0;
+        let totalPlantPixels = 0;
+
+        let totalR = 0, totalG = 0, totalB = 0;
+        let greenR = 0, greenG = 0, greenB = 0;
+
+        const sampleStep = 2; // Sample every 2 pixels for performance
+
+        for (let y = region.y; y < region.y + region.height; y += sampleStep) {
+            for (let x = region.x; x < region.x + region.width; x += sampleStep) {
+                const idx = (y * imgWidth + x) * 4;
+                if (idx < 0 || idx >= data.length) continue;
+
+                const r = data[idx];
+                const g = data[idx + 1];
+                const b = data[idx + 2];
+
+                // Convert to HSL for better color classification
+                const hsl = rgbToHsl(r, g, b);
+
+                // Green detection (hue 60-180, saturation > 20%, lightness 15-85%)
+                if (hsl.h >= 60 && hsl.h <= 180 && hsl.s > 20 && hsl.l > 15 && hsl.l < 85) {
+                    greenPixels++;
+                    greenR += r;
+                    greenG += g;
+                    greenB += b;
+                    totalPlantPixels++;
+                }
+                // Yellow detection (hue 30-65)
+                else if (hsl.h >= 30 && hsl.h < 65 && hsl.s > 30 && hsl.l > 30) {
+                    yellowPixels++;
+                    totalPlantPixels++;
+                }
+                // Brown detection (hue 10-40, low saturation or low lightness)
+                else if (hsl.h >= 10 && hsl.h < 40 && hsl.s < 50 && hsl.l > 10 && hsl.l < 50) {
+                    brownPixels++;
+                    totalPlantPixels++;
+                }
+
+                totalR += r;
+                totalG += g;
+                totalB += b;
+            }
+        }
+
+        const totalSampled = ((region.width / sampleStep) * (region.height / sampleStep)) || 1;
+
+        // Dominant leaf color
+        let dominantColor;
+        let dominantHex;
+        if (greenPixels > 0) {
+            const avgR = Math.round(greenR / greenPixels);
+            const avgG = Math.round(greenG / greenPixels);
+            const avgB = Math.round(greenB / greenPixels);
+            dominantHex = rgbToHex(avgR, avgG, avgB);
+
+            // Classify the green shade
+            const avgHsl = rgbToHsl(avgR, avgG, avgB);
+            if (avgHsl.l < 35) {
+                dominantColor = 'Hijau Tua';
+            } else if (avgHsl.l < 50) {
+                dominantColor = 'Hijau';
+            } else if (avgHsl.h > 70) {
+                dominantColor = 'Hijau Muda';
+            } else {
+                dominantColor = 'Hijau';
+            }
+        } else {
+            dominantColor = 'Tidak terdeteksi';
+            dominantHex = '#808080';
+        }
+
+        const yellowPercentage = totalPlantPixels > 0
+            ? ((yellowPixels / totalPlantPixels) * 100).toFixed(1)
+            : 0;
+
+        const greenPercentage = totalPlantPixels > 0
+            ? ((greenPixels / totalPlantPixels) * 100).toFixed(1)
+            : 0;
+
+        return {
+            dominantColor,
+            dominantHex,
+            greenPercentage: parseFloat(greenPercentage),
+            yellowPercentage: parseFloat(yellowPercentage),
+            brownPixels,
+            greenPixels,
+            yellowPixels,
+            totalPlantPixels,
+        };
+    }
+
+    /**
+     * Estimasi tinggi tanaman dalam cm
+     */
+    function estimateHeight(plantRegion, imageHeight) {
+        const pixelHeight = plantRegion.height;
+        let cm = 0;
+        let isEstimated = true;
+        let method = '';
+
+        if (APP_STATE.selectedReference !== 'none' && APP_STATE.referenceSize > 0) {
+            // With reference object
+            // Assume reference object takes roughly 1/3 to 1/2 of the image height
+            // In reality, we would need to detect the reference object separately
+            // This is a simplified estimation
+            const refPixelEstimate = imageHeight * 0.3; // Estimated reference pixels
+            const pixelsPerCm = refPixelEstimate / APP_STATE.referenceSize;
+            cm = pixelHeight / pixelsPerCm;
+            method = `Berdasarkan referensi ${APP_STATE.selectedReference} (${APP_STATE.referenceSize} cm)`;
+            isEstimated = true; // Still estimated since we don't detect the ref object precisely
+        } else {
+            // Without reference - rough estimation
+            // Assume typical viewing distance and camera properties
+            // Average field of view estimation
+            const estimatedFOVHeight = 60; // Estimated FOV in cm at ~50cm distance
+            cm = (pixelHeight / imageHeight) * estimatedFOVHeight;
+            method = 'Estimasi tanpa objek referensi (jarak kira-kira 50cm)';
+        }
+
+        // Clamp to reasonable range
+        cm = Math.max(1, Math.min(cm, 300));
+
+        return {
+            pixels: pixelHeight,
+            cm: parseFloat(cm.toFixed(1)),
+            isEstimated,
+            method,
+        };
+    }
+
+    /**
+     * Estimasi jumlah daun berdasarkan analisis tekstur area hijau
+     */
+    function estimateLeafCount(imageData, imgWidth, region) {
+        const data = imageData.data;
+        const sampleStep = 3;
+        let greenRegions = 0;
+        let prevWasGreen = false;
+        let transitions = 0;
+
+        // Scan horizontal lines through the plant region
+        // Count green-to-non-green transitions as proxy for leaf edges
+        for (let y = region.y; y < region.y + region.height; y += sampleStep * 4) {
+            prevWasGreen = false;
+            for (let x = region.x; x < region.x + region.width; x += sampleStep) {
+                const idx = (y * imgWidth + x) * 4;
+                if (idx < 0 || idx >= data.length) continue;
+
+                const r = data[idx];
+                const g = data[idx + 1];
+                const b = data[idx + 2];
+                const hsl = rgbToHsl(r, g, b);
+
+                const isGreen = hsl.h >= 60 && hsl.h <= 180 && hsl.s > 20 && hsl.l > 15 && hsl.l < 85;
+
+                if (isGreen && !prevWasGreen) {
+                    transitions++;
+                }
+                prevWasGreen = isGreen;
+            }
+        }
+
+        // Rough estimation: transitions correlate loosely with leaf count
+        // Divide by number of scanned lines and apply heuristic
+        const scannedLines = Math.floor(region.height / (sampleStep * 4)) || 1;
+        const avgTransitions = transitions / scannedLines;
+
+        // Heuristic mapping
+        let leafCount;
+        if (avgTransitions < 2) leafCount = Math.max(2, Math.round(avgTransitions * 2));
+        else if (avgTransitions < 5) leafCount = Math.round(avgTransitions * 1.5);
+        else if (avgTransitions < 10) leafCount = Math.round(avgTransitions * 1.2);
+        else leafCount = Math.round(avgTransitions);
+
+        // Clamp
+        leafCount = Math.max(1, Math.min(leafCount, 50));
+
+        return leafCount;
+    }
+
+    /**
+     * Penilaian kondisi pertumbuhan
+     */
+    function assessGrowthCondition(heightCm, colorAnalysis, leafCount) {
+        let score = 0;
+        let reasons = [];
+
+        // Height score (0-25 points)
+        if (heightCm >= 15) {
+            score += 25;
+            reasons.push('Tinggi tanaman baik (≥15 cm)');
+        } else if (heightCm >= 10) {
+            score += 20;
+            reasons.push('Tinggi tanaman cukup (10-15 cm)');
+        } else if (heightCm >= 5) {
+            score += 15;
+            reasons.push('Tanaman masih kecil (5-10 cm)');
+        } else {
+            score += 8;
+            reasons.push('Tanaman sangat kecil (<5 cm)');
+        }
+
+        // Green color score (0-30 points)
+        if (colorAnalysis.greenPercentage >= 70) {
+            score += 30;
+            reasons.push('Warna hijau sangat dominan (' + colorAnalysis.greenPercentage + '%)');
+        } else if (colorAnalysis.greenPercentage >= 50) {
+            score += 22;
+            reasons.push('Warna hijau cukup baik (' + colorAnalysis.greenPercentage + '%)');
+        } else if (colorAnalysis.greenPercentage >= 30) {
+            score += 15;
+            reasons.push('Warna hijau kurang dominan (' + colorAnalysis.greenPercentage + '%)');
+        } else {
+            score += 5;
+            reasons.push('Sedikit area hijau terdeteksi (' + colorAnalysis.greenPercentage + '%)');
+        }
+
+        // Yellow percentage score (0-25 points, inverse)
+        if (colorAnalysis.yellowPercentage <= 5) {
+            score += 25;
+            reasons.push('Sangat sedikit daun menguning');
+        } else if (colorAnalysis.yellowPercentage <= 15) {
+            score += 18;
+            reasons.push('Sedikit daun menguning (' + colorAnalysis.yellowPercentage + '%)');
+        } else if (colorAnalysis.yellowPercentage <= 30) {
+            score += 10;
+            reasons.push('Cukup banyak daun menguning (' + colorAnalysis.yellowPercentage + '%)');
+        } else {
+            score += 3;
+            reasons.push('Banyak daun menguning (' + colorAnalysis.yellowPercentage + '%)');
+        }
+
+        // Leaf count score (0-20 points)
+        if (leafCount >= 8) {
+            score += 20;
+            reasons.push('Jumlah daun banyak (≈' + leafCount + ' daun)');
+        } else if (leafCount >= 5) {
+            score += 15;
+            reasons.push('Jumlah daun cukup (≈' + leafCount + ' daun)');
+        } else if (leafCount >= 3) {
+            score += 10;
+            reasons.push('Jumlah daun sedikit (≈' + leafCount + ' daun)');
+        } else {
+            score += 5;
+            reasons.push('Jumlah daun sangat sedikit (≈' + leafCount + ' daun)');
+        }
+
+        // Determine condition level
+        let condition, conditionClass, conditionEmoji;
+        if (score >= 85) {
+            condition = 'Sangat Baik';
+            conditionClass = 'sangat-baik';
+            conditionEmoji = '🌟';
+        } else if (score >= 70) {
+            condition = 'Baik';
+            conditionClass = 'baik';
+            conditionEmoji = '✅';
+        } else if (score >= 50) {
+            condition = 'Cukup';
+            conditionClass = 'cukup';
+            conditionEmoji = '⚠️';
+        } else if (score >= 30) {
+            condition = 'Kurang';
+            conditionClass = 'kurang';
+            conditionEmoji = '🟠';
+        } else {
+            condition = 'Buruk';
+            conditionClass = 'buruk';
+            conditionEmoji = '🔴';
+        }
+
+        return {
+            score,
+            condition,
+            conditionClass,
+            conditionEmoji,
+            reasons,
+        };
+    }
+
+    /**
+     * Generate rekomendasi berdasarkan kondisi tanaman
+     */
+    function generateRecommendations(condition, colorAnalysis) {
+        const recs = [];
+
+        if (condition.score >= 85) {
+            recs.push({
+                icon: '🌟',
+                text: 'Tanaman dalam kondisi sangat baik! Pertahankan perawatan saat ini.'
+            });
+            recs.push({
+                icon: '✅',
+                text: 'Tanaman sehat. Lanjutkan jadwal penyiraman dan pemupukan rutin.'
+            });
+        }
+
+        if (condition.score < 85) {
+            if (colorAnalysis.yellowPercentage > 15) {
+                recs.push({
+                    icon: '💧',
+                    text: 'Kurangi penyiraman. Daun menguning bisa disebabkan oleh kelebihan air (overwatering).'
+                });
+                recs.push({
+                    icon: '🧪',
+                    text: 'Periksa drainase pot. Pastikan air tidak tergenang di dasar pot.'
+                });
+            }
+
+            if (colorAnalysis.greenPercentage < 50) {
+                recs.push({
+                    icon: '☀️',
+                    text: 'Tambahkan cahaya matahari. Tanaman mungkin kekurangan sinar matahari (etiolasi).'
+                });
+                recs.push({
+                    icon: '🧴',
+                    text: 'Tambahkan pupuk nitrogen (N) untuk meningkatkan warna hijau daun.'
+                });
+            }
+
+            if (condition.score < 50) {
+                recs.push({
+                    icon: '💧',
+                    text: 'Tambahkan penyiraman jika tanah terasa kering. Cek kelembaban tanah secara rutin.'
+                });
+                recs.push({
+                    icon: '🌿',
+                    text: 'Pertimbangkan pemangkasan daun kuning/mati untuk merangsang pertumbuhan baru.'
+                });
+            }
+
+            if (colorAnalysis.yellowPercentage <= 5 && colorAnalysis.greenPercentage >= 50) {
+                recs.push({
+                    icon: '📏',
+                    text: 'Pertumbuhan terlihat stabil. Tambahkan pupuk NPK seimbang untuk mendukung pertumbuhan lebih optimal.'
+                });
+            }
+        }
+
+        if (recs.length === 0) {
+            recs.push({
+                icon: '✅',
+                text: 'Tanaman sehat. Terus pantau perkembangannya secara berkala.'
+            });
+        }
+
+        return recs;
+    }
+
+    /**
+     * Gambar hasil analisis pada gambar yang ditangkap
+     */
+    function drawAnalysisOnCapture(ctx, detections, analysis) {
+        detections.forEach(detection => {
+            const [x, y, width, height] = detection.bbox;
+
+            // Bounding box
+            ctx.strokeStyle = '#4caf50';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(x, y, width, height);
+
+            // Corner markers
+            const cornerLen = 25;
+            ctx.strokeStyle = '#00e676';
+            ctx.lineWidth = 5;
+
+            ctx.beginPath();
+            ctx.moveTo(x, y + cornerLen); ctx.lineTo(x, y); ctx.lineTo(x + cornerLen, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x + width - cornerLen, y); ctx.lineTo(x + width, y); ctx.lineTo(x + width, y + cornerLen);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y + height - cornerLen); ctx.lineTo(x, y + height); ctx.lineTo(x + cornerLen, y + height);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x + width - cornerLen, y + height); ctx.lineTo(x + width, y + height); ctx.lineTo(x + width, y + height - cornerLen);
+            ctx.stroke();
+
+            // Label
+            const label = `🌿 ${(detection.score * 100).toFixed(1)}%`;
+            ctx.font = 'bold 16px Arial';
+            const textW = ctx.measureText(label).width;
+            ctx.fillStyle = 'rgba(76, 175, 80, 0.9)';
+            ctx.fillRect(x, y - 32, textW + 16, 30);
+            ctx.fillStyle = 'white';
+            ctx.fillText(label, x + 8, y - 10);
+
+            // Height measurement line
+            const cx = x + width / 2;
+            ctx.setLineDash([8, 4]);
+            ctx.strokeStyle = '#ffeb3b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx, y); ctx.lineTo(cx, y + height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Height label
+            ctx.fillStyle = 'rgba(255, 235, 59, 0.9)';
+            ctx.fillRect(cx + 8, y + height / 2 - 14, 80, 28);
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText(`≈ ${analysis.height.cm} cm`, cx + 14, y + height / 2 + 5);
+        });
+    }
+
+    // ============================================
+    // 11. DISPLAY ANALYSIS RESULTS
+    // ============================================
+
+    function displayAnalysisResults(analysis) {
+        // Show results, hide placeholder
+        DOM.noAnalysis.style.display = 'none';
+        DOM.analysisResults.classList.add('visible');
+        DOM.capturedPreview.classList.add('visible');
+
+        // Set captured image
+        DOM.capturedImage.src = APP_STATE.capturedImageData;
+
+        // Confidence
+        const confPct = (analysis.confidence * 100).toFixed(1);
+        DOM.confidenceValue.textContent = confPct + '%';
+        DOM.confidenceBar.style.width = confPct + '%';
+
+        // Show estimation note
+        DOM.estimationNote.style.display = analysis.height.isEstimated ? 'flex' : 'none';
+
+        // Height
+        DOM.resultHeight.textContent = analysis.height.cm + ' cm';
+
+        // Leaf count
+        DOM.resultLeaves.textContent = '≈ ' + analysis.leafCount;
+
+        // Leaf color
+        DOM.resultColor.innerHTML =
+            `<span class="color-swatch" style="background: ${analysis.color.dominantHex}"></span>` +
+            analysis.color.dominantColor;
+
+        // Yellowing percentage
+        DOM.resultYellowing.textContent = analysis.color.yellowPercentage + '%';
+
+        // Condition
+        DOM.resultCondition.innerHTML =
+            `<span class="condition-badge ${analysis.condition.conditionClass}">
+                ${analysis.condition.conditionEmoji} ${analysis.condition.condition}
+            </span>`;
+
+        // Assessment reason
+        DOM.assessmentReason.innerHTML = analysis.condition.reasons
+            .map(r => `• ${r}`)
+            .join('<br>');
+
+        // Recommendations
+        DOM.recommendationList.innerHTML = analysis.recommendations
+            .map(rec => `
+                <li>
+                    <span class="rec-icon">${rec.icon}</span>
+                    <span>${rec.text}</span>
+                </li>
+            `)
+            .join('');
+    }
+
+    // ============================================
+    // 12. HISTORY MANAGEMENT (localStorage)
+    // ============================================
+
+    /**
+     * Simpan analisis ke riwayat di localStorage
+     */
+    function saveToHistory() {
+        if (!APP_STATE.currentAnalysis) {
+            showToast('⚠️ Belum ada analisis untuk disimpan');
+            return;
+        }
+
+        const history = getHistory();
+        const entry = {
+            id: Date.now(),
+            date: new Date().toISOString(),
+            image: APP_STATE.capturedImageData,
+            height: APP_STATE.currentAnalysis.height.cm,
+            condition: APP_STATE.currentAnalysis.condition.condition,
+            conditionClass: APP_STATE.currentAnalysis.condition.conditionClass,
+            conditionEmoji: APP_STATE.currentAnalysis.condition.conditionEmoji,
+            confidence: APP_STATE.currentAnalysis.confidence,
+            leafCount: APP_STATE.currentAnalysis.leafCount,
+            leafColor: APP_STATE.currentAnalysis.color.dominantColor,
+            yellowPercentage: APP_STATE.currentAnalysis.color.yellowPercentage,
+            note: DOM.analysisNote.value.trim(),
+            recommendations: APP_STATE.currentAnalysis.recommendations,
+        };
+
+        history.unshift(entry);
+
+        // Limit history to 50 entries to avoid localStorage overflow
+        if (history.length > 50) {
+            history.splice(50);
+        }
+
+        try {
+            localStorage.setItem('plantvision-history', JSON.stringify(history));
+            showToast('💾 Berhasil disimpan ke riwayat!');
+            DOM.analysisNote.value = '';
+            renderHistory();
+        } catch (e) {
+            // localStorage might be full, try removing old images
+            if (e.name === 'QuotaExceededError') {
+                // Remove oldest entries
+                while (history.length > 10) {
+                    history.pop();
+                }
+                try {
+                    localStorage.setItem('plantvision-history', JSON.stringify(history));
+                    showToast('💾 Disimpan (beberapa riwayat lama dihapus untuk menghemat ruang)');
+                    renderHistory();
+                } catch (e2) {
+                    showToast('❌ Penyimpanan penuh. Hapus beberapa riwayat terlebih dahulu.');
+                }
+            }
+        }
+    }
+
+    /**
+     * Ambil riwayat dari localStorage
+     */
+    function getHistory() {
+        try {
+            const data = localStorage.getItem('plantvision-history');
+            return data ? JSON.parse(data) : [];
+        } catch {
+            return [];
+        }
+    }
+
+    /**
+     * Render daftar riwayat
+     */
+    function renderHistory() {
+        const history = getHistory();
+
+        if (history.length === 0) {
+            DOM.historyList.innerHTML = `
+                <div class="no-history">
+                    <div class="no-history-icon">📭</div>
+                    <h3>Belum Ada Riwayat</h3>
+                    <p>Tangkap dan analisis tanaman untuk membuat riwayat pertumbuhan.</p>
+                </div>
+            `;
+            return;
+        }
+
+        DOM.historyList.innerHTML = history.map(entry => {
+            const date = new Date(entry.date);
+            const dateStr = date.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            return `
+                <div class="history-item" onclick="showHistoryDetail('${entry.id}')">
+                    <img class="history-thumbnail" src="${entry.image}" alt="Plant photo" loading="lazy" />
+                    <div class="history-info">
+                        <div class="history-date">${dateStr}</div>
+                        <div class="history-height">📏 ${entry.height} cm</div>
+                        <div class="history-status">
+                            <span class="condition-badge ${entry.conditionClass}" style="font-size: 0.75rem; padding: 4px 10px;">
+                                ${entry.conditionEmoji} ${entry.condition}
+                            </span>
+                        </div>
+                        ${entry.note ? `<div class="history-note">📝 ${entry.note}</div>` : ''}
+                    </div>
+                    <div class="history-actions">
+                        <button onclick="event.stopPropagation(); deleteHistoryEntry('${entry.id}')" title="Hapus">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    /**
+     * Hapus satu entri riwayat
+     */
+    function deleteHistoryEntry(id) {
+        if (!confirm('Hapus riwayat ini?')) return;
+
+        const history = getHistory().filter(e => e.id != id);
+        localStorage.setItem('plantvision-history', JSON.stringify(history));
+        renderHistory();
+        updateGrowthChart();
+        showToast('🗑️ Riwayat dihapus');
+    }
+
+    /**
+     * Hapus semua riwayat
+     */
+    function clearHistory() {
+        if (!confirm('Hapus semua riwayat pertumbuhan? Tindakan ini tidak dapat dibatalkan.')) return;
+
+        localStorage.removeItem('plantvision-history');
+        renderHistory();
+        updateGrowthChart();
+        showToast('🗑️ Semua riwayat dihapus');
+    }
+
+    /**
+     * Tampilkan detail riwayat dalam modal
+     */
+    function showHistoryDetail(id) {
+        const history = getHistory();
+        const entry = history.find(e => e.id == id);
+        if (!entry) return;
+
+        const date = new Date(entry.date);
+        const dateStr = date.toLocaleDateString('id-ID', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        DOM.modalContent.innerHTML = `
+            <img src="${entry.image}" alt="Plant" style="width: 100%; border-radius: 12px; margin-bottom: 16px;" />
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">📅 ${dateStr}</p>
+
+            <div class="result-grid" style="margin-bottom: 16px;">
+                <div class="result-item">
+                    <div class="result-icon">📏</div>
+                    <div class="result-label">Tinggi</div>
+                    <div class="result-value">${entry.height} cm</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-icon">🍃</div>
+                    <div class="result-label">Daun</div>
+                    <div class="result-value">≈ ${entry.leafCount || '-'}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-icon">🎨</div>
+                    <div class="result-label">Warna</div>
+                    <div class="result-value" style="font-size: 0.9rem;">${entry.leafColor || '-'}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-icon">🟡</div>
+                    <div class="result-label">Menguning</div>
+                    <div class="result-value">${entry.yellowPercentage || 0}%</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <span class="condition-badge ${entry.conditionClass}">
+                    ${entry.conditionEmoji} ${entry.condition}
+                </span>
+            </div>
+
+            ${entry.note ? `
+                <div class="info-box">
+                    <strong>📝 Catatan:</strong><br>${entry.note}
+                </div>
+            ` : ''}
+
+            ${entry.recommendations ? `
+                <div style="margin-top: 12px;">
+                    <strong style="color: var(--green-primary);">💡 Rekomendasi:</strong>
+                    <ul class="recommendation-list" style="margin-top: 8px;">
+                        ${entry.recommendations.map(r => `
+                            <li>
+                                <span class="rec-icon">${r.icon}</span>
+                                <span>${r.text}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        `;
+
+        DOM.detailModal.classList.add('visible');
+    }
+
+    function closeModal() {
+        DOM.detailModal.classList.remove('visible');
+    }
+
+    // ============================================
+    // 13. GROWTH CHART (Chart.js)
+    // ============================================
+
+    function updateGrowthChart() {
+        const history = getHistory();
+
+        if (history.length < 1) {
+            DOM.noChartData.style.display = 'block';
+            if (APP_STATE.growthChart) {
+                APP_STATE.growthChart.destroy();
+                APP_STATE.growthChart = null;
+            }
+            return;
+        }
+
+        DOM.noChartData.style.display = 'none';
+
+        // Prepare data (chronological order)
+        const sortedHistory = [...history].reverse();
+        const labels = sortedHistory.map(e => {
+            const d = new Date(e.date);
+            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        });
+        const heights = sortedHistory.map(e => e.height);
+
+        // Determine theme colors
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#a0c8a0' : '#4a6a4a';
+        const gridColor = isDark ? 'rgba(160, 200, 160, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+
+        if (APP_STATE.growthChart) {
+            APP_STATE.growthChart.destroy();
+        }
+
+        const ctx = DOM.growthChartCanvas.getContext('2d');
+
+        // Gradient fill
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(76, 175, 80, 0.3)');
+        gradient.addColorStop(1, 'rgba(76, 175, 80, 0.02)');
+
+        APP_STATE.growthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tinggi Tanaman (cm)',
+                    data: heights,
+                    borderColor: '#4caf50',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#4caf50',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#2e7d32',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: textColor,
+                            font: { size: 13, weight: 'bold' },
+                            usePointStyle: true,
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? '#1e3320' : '#fff',
+                        titleColor: isDark ? '#e0f0e0' : '#333',
+                        bodyColor: isDark ? '#a0c8a0' : '#666',
+                        borderColor: '#4caf50',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `Tinggi: ${context.parsed.y} cm`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: textColor, font: { size: 11 } },
+                        grid: { color: gridColor }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: textColor,
+                            font: { size: 11 },
+                            callback: function(value) { return value + ' cm'; }
+                        },
+                        grid: { color: gridColor }
+                    }
+                }
+            }
+        });
+    }
+
+    // ============================================
+    // 14. UTILITY FUNCTIONS
+    // ============================================
+
+    /**
+     * Konversi RGB ke HSL
+     */
+    function rgbToHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h, s;
+        const l = (max + min) / 2;
+
+        if (max === min) {
+            h = s = 0;
+        } else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                case g: h = ((b - r) / d + 2) / 6; break;
+                case b: h = ((r - g) / d + 4) / 6; break;
+            }
+        }
+
+        return {
+            h: Math.round(h * 360),
+            s: Math.round(s * 100),
+            l: Math.round(l * 100)
+        };
+    }
+
+    /**
+     * Konversi RGB ke hex
+     */
+    function rgbToHex(r, g, b) {
+        return '#' + [r, g, b].map(x => {
+            const hex = x.toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        }).join('');
+    }
+
+    /**
+     * Update status bar model AI
+     */
+    function updateModelStatus(type, message) {
+        DOM.modelStatus.className = 'status-bar ' + type;
+        DOM.modelStatus.innerHTML = type === 'loading'
+            ? `<span class="spinner"></span><span>${message}</span>`
+            : `<span>${message}</span>`;
+    }
+
+    /**
+     * Tampilkan toast notification
+     */
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        DOM.toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 3000);
+    }
+
+    /**
+     * Tampilkan loading overlay
+     */
+    function showLoading(text) {
+        DOM.loadingText.textContent = text || 'Memproses...';
+        DOM.loadingOverlay.classList.add('visible');
+    }
+
+    /**
+     * Sembunyikan loading overlay
+     */
+    function hideLoading() {
+        DOM.loadingOverlay.classList.remove('visible');
+    }
+
+    // ============================================
+    // 15. GLOBAL FUNCTION EXPOSURE
+    // ============================================
+    // Functions called from HTML onclick attributes need to be global
+    window.showHistoryDetail = showHistoryDetail;
+    window.deleteHistoryEntry = deleteHistoryEntry;
+
+    // ============================================
+    // 16. SERVICE WORKER / PWA HINT (Optional)
+    // ============================================
+    // Note: For full PWA support, a separate service worker file would be needed.
+    // This app works as a standard web app opened directly in the browser.
+
+    console.log('🌱 PlantVision AI - App script loaded successfully');
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1592 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pass-and-Play Card Tactics (3v3 Arena, Roster 6)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --panel2:#0c1629;
+      --text:#e9eefb;
+      --muted:#a9b6d6;
+      --line:#263554;
+      --good:#59d98e;
+      --bad:#ff6b6b;
+      --warn:#ffd166;
+      --accent:#7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+      --radius2: 10px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 700px at 10% 0%, rgba(122,162,255,.18), transparent 55%),
+                  radial-gradient(900px 600px at 100% 10%, rgba(89,217,142,.14), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+
+    header{
+      position:sticky; top:0;
+      z-index:5;
+      background: linear-gradient(to bottom, rgba(11,18,32,.92), rgba(11,18,32,.7));
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(38,53,84,.6);
+    }
+
+    .wrap{max-width:1100px; margin:0 auto; padding:16px;}
+    .topbar{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+    }
+    .title{
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .title h1{
+      margin:0;
+      font-size:16px;
+      letter-spacing:.2px;
+      font-weight:700;
+    }
+    .subtitle{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.2;
+    }
+
+    .btnrow{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+    button, .btn{
+      cursor:pointer;
+      border:1px solid rgba(38,53,84,.85);
+      background: linear-gradient(180deg, rgba(18,31,55,.95), rgba(11,22,41,.95));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.22);
+      font-weight:650;
+      letter-spacing:.2px;
+    }
+    button:hover{border-color: rgba(122,162,255,.7)}
+    button:disabled{
+      opacity:.45; cursor:not-allowed;
+      filter:saturate(.8);
+    }
+    .btn-danger{
+      border-color: rgba(255,107,107,.5);
+      background: linear-gradient(180deg, rgba(66,18,24,.9), rgba(38,10,15,.9));
+    }
+    .btn-ghost{
+      background: transparent;
+      box-shadow:none;
+    }
+
+    main .screen{display:none;}
+    main .screen.active{display:block;}
+
+    .panel{
+      background: linear-gradient(180deg, rgba(15,26,46,.9), rgba(12,22,41,.88));
+      border:1px solid rgba(38,53,84,.75);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:16px;
+    }
+
+    .grid2{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 920px){
+      .grid2{grid-template-columns:1fr}
+    }
+
+    .section-title{
+      display:flex; align-items:baseline; justify-content:space-between; gap:10px;
+      margin-bottom:10px;
+      border-bottom:1px solid rgba(38,53,84,.55);
+      padding-bottom:8px;
+    }
+    .section-title h2{margin:0; font-size:14px;}
+    .hint{color:var(--muted); font-size:12px;}
+
+    .cards{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 520px){
+      .cards{grid-template-columns:1fr}
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(12,22,41,.9), rgba(10,18,33,.9));
+      border:1px solid rgba(38,53,84,.75);
+      border-radius: var(--radius2);
+      padding:10px;
+      position:relative;
+      transition: transform .08s ease, border-color .08s ease, box-shadow .08s ease;
+      user-select:none;
+    }
+    .card:hover{transform: translateY(-1px); border-color: rgba(122,162,255,.65);}
+    .card.selected{
+      border-color: rgba(89,217,142,.9);
+      box-shadow: 0 0 0 2px rgba(89,217,142,.25) inset, 0 10px 28px rgba(0,0,0,.25);
+    }
+    .card.dead{
+      opacity:.55;
+      filter:grayscale(.35);
+    }
+    .card.locked{
+      opacity:.62;
+      filter:saturate(.8);
+    }
+
+    .cardhead{
+      display:flex; justify-content:space-between; gap:10px; align-items:flex-start;
+      margin-bottom:8px;
+    }
+    .name{
+      font-weight:800;
+      font-size:13px;
+      line-height:1.15;
+    }
+    .type{
+      font-size:11px;
+      color:var(--muted);
+      font-weight:650;
+      border:1px solid rgba(38,53,84,.75);
+      padding:3px 8px;
+      border-radius:999px;
+      white-space:nowrap;
+      background: rgba(8,14,26,.6);
+    }
+
+    .stats{
+      width:100%;
+      border-collapse:collapse;
+      font-family:var(--mono);
+      font-size:12px;
+      color: var(--text);
+    }
+    .stats td{
+      padding:4px 0;
+      border-top:1px dashed rgba(38,53,84,.45);
+    }
+    .stats td:first-child{color:var(--muted); width:62px;}
+    .stats .hp{color: var(--good); font-weight:700;}
+    .stats .atk{color: var(--warn); font-weight:700;}
+
+    .addon{
+      margin-top:8px;
+      font-size:12px;
+      color: var(--muted);
+      border-top:1px solid rgba(38,53,84,.55);
+      padding-top:8px;
+      display:flex; justify-content:space-between; gap:8px; align-items:center;
+    }
+    .badge{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(38,53,84,.75);
+      background: rgba(8,14,26,.6);
+      color: var(--text);
+      white-space:nowrap;
+    }
+    .badge.good{border-color: rgba(89,217,142,.55);}
+    .badge.warn{border-color: rgba(255,209,102,.55);}
+    .badge.bad{border-color: rgba(255,107,107,.55);}
+    .badge.muted{color: var(--muted);}
+
+    .small{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.45;
+    }
+
+    .orderList{
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .orderItem{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(38,53,84,.65);
+      background: rgba(8,14,26,.35);
+    }
+    .orderItem .left{display:flex; flex-direction:column; gap:3px;}
+    .orderItem .right{display:flex; gap:8px; align-items:center;}
+    .orderItem .meta{font-size:11px; color:var(--muted); font-family:var(--mono);}
+
+    .arenaWrap{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+    }
+    .twoSides{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+    @media (max-width: 900px){
+      .twoSides{grid-template-columns:1fr}
+    }
+
+    .arenaGrid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:10px;
+    }
+    @media (max-width: 560px){
+      .arenaGrid{grid-template-columns:1fr}
+    }
+
+    .benchGrid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 560px){
+      .benchGrid{grid-template-columns:1fr}
+    }
+
+    .instruction{
+      padding:10px 12px;
+      border:1px solid rgba(38,53,84,.65);
+      border-radius:12px;
+      background: rgba(8,14,26,.35);
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    .kpi{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .kpi span{
+      border:1px solid rgba(38,53,84,.65);
+      border-radius:999px;
+      padding:5px 10px;
+      background: rgba(8,14,26,.35);
+    }
+
+    /* Modals / overlays */
+    .overlay{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.78);
+      display:none;
+      z-index:50;
+      padding:16px;
+    }
+    .overlay.active{display:flex;}
+    .modal{
+      margin:auto;
+      max-width: 720px;
+      width:100%;
+      background: linear-gradient(180deg, rgba(15,26,46,.98), rgba(12,22,41,.98));
+      border:1px solid rgba(38,53,84,.85);
+      border-radius: 18px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+    .modal header{
+      position:static;
+      border-bottom:1px solid rgba(38,53,84,.65);
+      background: rgba(8,14,26,.35);
+    }
+    .modal .content{padding:16px;}
+    .modal h3{margin:0; font-size:14px;}
+    .modal p{margin:10px 0 0 0; color: var(--muted); font-size:12px; line-height:1.55;}
+    .modal .actions{
+      display:flex; justify-content:flex-end; gap:10px;
+      padding:14px 16px;
+      border-top:1px solid rgba(38,53,84,.65);
+      background: rgba(8,14,26,.35);
+    }
+
+    .logbox{
+      font-family:var(--mono);
+      font-size:12px;
+      line-height:1.55;
+      white-space:pre-wrap;
+      color: var(--text);
+      background: rgba(8,14,26,.35);
+      border:1px solid rgba(38,53,84,.65);
+      border-radius: 14px;
+      padding:12px;
+    }
+
+    input[type="number"], input[type="text"]{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid rgba(38,53,84,.85);
+      background: rgba(8,14,26,.45);
+      color: var(--text);
+      outline:none;
+      font-family:var(--mono);
+    }
+    label{font-size:12px; color: var(--muted); display:block; margin:10px 0 6px;}
+    .formrow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+    @media (max-width: 560px){
+      .formrow{grid-template-columns:1fr}
+    }
+
+    .footerNote{
+      margin-top:10px;
+      color: var(--muted);
+      font-size:11px;
+      line-height:1.45;
+    }
+
+    .pill{
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid rgba(38,53,84,.65);
+      color: var(--muted);
+      font-size:11px;
+      font-family: var(--mono);
+      background: rgba(8,14,26,.35);
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        <h1>Card Tactics — Pass-and-Play (Offline Local)</h1>
+        <div class="subtitle">Draft 6 hero • Arena 3v3 (bench otomatis) • Fog of War • Add-on trigger saat menyerang</div>
+      </div>
+      <div class="btnrow">
+        <button id="btnNew" class="btn-danger">Mulai Baru</button>
+        <button id="btnHelp" class="btn-ghost">Bantuan</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- INTRO -->
+  <section id="screenIntro" class="screen active">
+    <div class="panel">
+      <div class="section-title">
+        <h2>Mulai Game</h2>
+        <div class="hint">2 pemain, 1 HP, bergantian (pass-and-play)</div>
+      </div>
+      <div class="grid2">
+        <div class="small">
+          <p><b>Alur singkat:</b></p>
+          <ol>
+            <li>Player 1 draft: pilih 6 dari 10 hero acak.</li>
+            <li>Serahkan HP ke Player 2, lalu Player 2 draft.</li>
+            <li>Initiative: masing-masing tebak angka. Yang paling dekat mendapat giliran pertama.</li>
+            <li>Battle: tiap giliran pilih 1 hero arena untuk menyerang 1 kartu musuh (tertutup).</li>
+            <li>Add-on hanya aktif saat hero menyerang (bonus ATK atau heal HP).</li>
+            <li>Jika hero arena mati, otomatis digantikan dari bench sampai 6 hero habis.</li>
+          </ol>
+          <p class="footerNote">
+            Catatan Fog of War: Saat giliranmu, kamu hanya melihat detail kartumu sendiri. Kartu musuh selalu tertutup (A/B/C).
+            Hasil serangan ditampilkan di log, lalu layar tertutup agar aman saat menyerahkan HP.
+          </p>
+        </div>
+        <div class="panel" style="padding:14px; background: linear-gradient(180deg, rgba(12,22,41,.85), rgba(10,18,33,.85));">
+          <div class="section-title">
+            <h2>Pengaturan Cepat</h2>
+            <span class="pill">Default</span>
+          </div>
+          <div class="small">
+            <ul>
+              <li>Roster: 6 hero per pemain</li>
+              <li>Arena: 3 slot aktif (bench otomatis)</li>
+              <li>Range initiative: 1–20</li>
+              <li>Add-on type: ATK atau HP (acak per hero, jika Add_On > 0)</li>
+            </ul>
+          </div>
+          <div class="btnrow" style="margin-top:10px;">
+            <button id="btnStart">Mulai Draft Player 1</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DRAFT -->
+  <section id="screenDraft" class="screen">
+    <div class="panel">
+      <div class="section-title">
+        <h2 id="draftTitle">Draft</h2>
+        <div class="kpi">
+          <span id="draftCounter">Terpilih: 0/6</span>
+          <span id="draftNote">Pilih tepat 6 hero</span>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="instruction" id="draftInstruction">
+            Klik kartu untuk memilih. Kamu juga bisa mengatur urutan roster (3 pertama = Arena awal).
+          </div>
+          <div style="height:10px"></div>
+          <div id="draftPool" class="cards"></div>
+        </div>
+
+        <div>
+          <div class="section-title">
+            <h2>Roster Terpilih (Urutan)</h2>
+            <div class="hint">3 pertama = Arena awal</div>
+          </div>
+          <div id="draftOrder" class="orderList"></div>
+          <div class="btnrow" style="margin-top:12px; justify-content:space-between;">
+            <button id="btnDraftBack" class="btn-ghost">Kembali</button>
+            <button id="btnDraftConfirm" disabled>Konfirmasi 6 Hero</button>
+          </div>
+          <div class="footerNote">Tips: Untuk privasi, pastikan hanya pemain yang sedang draft yang melihat layar.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INITIATIVE -->
+  <section id="screenInit" class="screen">
+    <div class="panel">
+      <div class="section-title">
+        <h2>Initiative (Penentuan Giliran Pertama)</h2>
+        <div class="hint">Tebak angka 1–20</div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="instruction" id="initInstruction">
+            Masing-masing pemain memasukkan tebakan secara bergantian. Setelah itu sistem mengundi angka acak.
+          </div>
+          <div style="height:12px"></div>
+
+          <div class="panel" style="padding:14px; background: rgba(8,14,26,.35); border-radius:16px;">
+            <div class="section-title">
+              <h2 id="initPrompt">Input Tebakan</h2>
+              <span class="pill" id="initStagePill">Stage</span>
+            </div>
+
+            <label for="guessInput">Tebakan (1–20)</label>
+            <input id="guessInput" type="number" min="1" max="20" inputmode="numeric" />
+
+            <div class="btnrow" style="margin-top:12px; justify-content:flex-end;">
+              <button id="btnGuessConfirm">Konfirmasi</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-title">
+            <h2>Ringkasan</h2>
+            <div class="hint">Disembunyikan sampai selesai</div>
+          </div>
+          <div class="logbox" id="initSummary">Belum ada hasil.</div>
+          <div class="btnrow" style="margin-top:12px; justify-content:space-between;">
+            <button id="btnInitBack" class="btn-ghost">Kembali</button>
+            <button id="btnInitContinue" disabled>Lanjut ke Battle</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BATTLE -->
+  <section id="screenBattle" class="screen">
+    <div class="panel">
+      <div class="section-title">
+        <h2 id="battleTitle">Battle</h2>
+        <div class="kpi">
+          <span id="turnInfo">Giliran: -</span>
+          <span id="selectInfo">Pilih penyerang</span>
+        </div>
+      </div>
+
+      <div class="twoSides">
+        <div class="panel" style="background: rgba(8,14,26,.35);">
+          <div class="section-title">
+            <h2 id="mySideTitle">Pemain -</h2>
+            <div class="hint">Detail terlihat</div>
+          </div>
+
+          <div class="instruction">
+            <b>Aksi turn:</b> pilih 1 hero di <b>Arena</b> sebagai penyerang, lalu pilih 1 kartu musuh (A/B/C) sebagai target.
+            Add-on penyerang akan <b>trigger saat menyerang</b>.
+          </div>
+
+          <div style="height:12px"></div>
+          <div class="section-title">
+            <h2>Arena (3)</h2>
+            <div class="hint">Hanya arena bisa menyerang</div>
+          </div>
+          <div id="myArena" class="arenaGrid"></div>
+
+          <div style="height:12px"></div>
+          <div class="section-title">
+            <h2>Bench (sisa roster)</h2>
+            <div class="hint">Masuk otomatis saat arena mati</div>
+          </div>
+          <div id="myBench" class="benchGrid"></div>
+        </div>
+
+        <div class="panel" style="background: rgba(8,14,26,.35);">
+          <div class="section-title">
+            <h2 id="enemyTitle">Musuh</h2>
+            <div class="hint">Fog of War (kartu tertutup)</div>
+          </div>
+
+          <div class="section-title" style="margin-top:6px;">
+            <h2>Arena Musuh (3)</h2>
+            <div class="hint">Target tertutup</div>
+          </div>
+          <div id="enemyArena" class="arenaGrid"></div>
+
+          <div style="height:12px"></div>
+          <div class="section-title">
+            <h2>Status</h2>
+            <div class="hint">Total KO / total roster</div>
+          </div>
+          <div class="logbox" id="battleStatus">-</div>
+
+          <div class="btnrow" style="margin-top:12px; justify-content:space-between;">
+            <button id="btnBattleBack" class="btn-ghost">Kembali (Debug)</button>
+            <button id="btnEndTurn" disabled>Akhiri Turn</button>
+          </div>
+          <div class="footerNote">Tombol "Akhiri Turn" aktif setelah serangan selesai (via tombol "Lanjut" di log).</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME OVER -->
+  <section id="screenOver" class="screen">
+    <div class="panel">
+      <div class="section-title">
+        <h2 id="overTitle">Game Selesai</h2>
+        <div class="hint" id="overHint">-</div>
+      </div>
+      <div class="grid2">
+        <div class="logbox" id="overSummary"></div>
+        <div class="panel" style="padding:14px; background: rgba(8,14,26,.35);">
+          <div class="section-title">
+            <h2>Aksi</h2>
+            <span class="pill">Reset</span>
+          </div>
+          <div class="btnrow">
+            <button id="btnRestart">Main Lagi</button>
+          </div>
+          <div class="footerNote">Game tidak menyimpan data; semuanya berjalan offline di 1 file HTML.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- PASS / PRIVACY OVERLAY -->
+<div id="overlayPass" class="overlay" aria-hidden="true">
+  <div class="modal">
+    <header>
+      <div class="wrap" style="padding:12px 16px;">
+        <h3 id="passTitle">Serahkan Perangkat</h3>
+      </div>
+    </header>
+    <div class="content">
+      <p id="passText">-</p>
+      <div class="logbox" id="passMini" style="margin-top:12px; display:none;"></div>
+    </div>
+    <div class="actions">
+      <button id="btnPassOk">Klik untuk Mulai</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG / RESULT MODAL -->
+<div id="overlayLog" class="overlay" aria-hidden="true">
+  <div class="modal">
+    <header>
+      <div class="wrap" style="padding:12px 16px;">
+        <h3>Battle Log</h3>
+      </div>
+    </header>
+    <div class="content">
+      <div id="logText" class="logbox"></div>
+      <p class="footerNote">Setelah klik Lanjut, layar akan tertutup untuk pergantian pemain.</p>
+    </div>
+    <div class="actions">
+      <button id="btnLogNext">Lanjut</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div id="overlayHelp" class="overlay" aria-hidden="true">
+  <div class="modal">
+    <header>
+      <div class="wrap" style="padding:12px 16px;">
+        <h3>Bantuan Singkat</h3>
+      </div>
+    </header>
+    <div class="content">
+      <div class="small">
+        <ul>
+          <li><b>Draft:</b> pilih 6 dari 10 kartu. Urutan roster penting: 3 pertama masuk Arena.</li>
+          <li><b>Add-on:</b> hanya aktif saat hero menyerang.
+            <ul>
+              <li><code>+X ATK</code> = damage serangan bertambah X.</li>
+              <li><code>+X HP</code> = penyerang heal X saat menyerang (maks. sampai HP awalnya).</li>
+            </ul>
+          </li>
+          <li><b>Fog of War:</b> detail musuh tidak tampil. Saat menyerang, log mengungkap nama hero target.</li>
+          <li><b>3v3 Arena:</b> hanya 3 hero aktif per pihak. Jika hero arena KO, bench otomatis menggantikan.</li>
+          <li><b>Menang:</b> lawan kehilangan semua 6 hero (HP = 0).</li>
+        </ul>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btnHelpClose">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================
+   Data & Utilities
+========================= */
+
+const HERO_CSV = `Name,Power_Attack,HP,Add_On
+Aethelgard,145,280,45
+Bryn_Vance,88,120,0
+Caelum_Void,185,95,65
+Daria_Frost,55,210,20
+Eldrin_Stone,110,295,0
+Fiona_Flint,130,140,35
+Gideon_Grimm,95,190,0
+Hana_Blossom,42,165,15
+Icarus_Sky,170,85,50
+Jarek_Thorne,125,240,0
+Kira_Shadow,160,115,40
+Lyra_Chord,65,180,25
+Mako_Tide,105,220,0
+Nova_Star,190,70,70
+Orin_Clay,75,300,0
+Pyra_Ignis,155,130,55
+Quinn_Swift,120,150,0
+Roran_Bear,90,275,30
+Sylvia_Wind,135,110,0
+Talon_Grip,140,135,20
+Ulysses_Iron,80,290,60
+Valerie_Vamp,165,100,0
+Wren_Hunter,115,175,15
+Xander_Volt,175,90,65
+Yara_Green,50,250,0
+Zane_Zenith,180,105,45
+Alaric_Bold,130,215,0
+Bellona_War,150,160,50
+Cedric_Sage,70,230,25
+Drake_Wyrm,165,195,0
+Eira_Glaze,85,145,35
+Fenrir_Fang,185,125,55
+Gaius_Prime,100,260,0
+Hazele_Nut,40,155,10
+Iris_Prism,120,135,0
+Jax_Breaker,145,205,40
+Kael_Sun,160,110,0
+Luna_Eclipse,115,170,30
+Milo_Quake,95,285,60
+Nadia_Gale,125,125,0
+Odin_All,170,250,70
+Piper_Piper,60,140,0
+Rhys_Rune,135,190,20
+Sari_Silk,45,185,0
+Titus_Titan,110,300,65
+Uri_Light,150,95,0
+Veda_Mind,80,200,15
+Wogan_Wolf,140,180,0
+Xena_Blade,155,150,45
+Yuri_Ice,90,220,0
+Zev_Striker,175,115,50
+Ashe_Cinder,130,130,0
+Bram_Boulder,75,295,55
+Cora_Coral,105,210,25
+Dante_Inferno,180,105,0
+Eva_Matrix,160,140,40
+Finn_Fin,85,175,0
+Gwen_Ghost,120,85,35
+Hark_Iron,115,265,0
+Kira_Neon,185,100,60`;
+
+const TYPES = ["Warrior","Mage","Rogue","Guardian","Ranger","Cleric"];
+
+const INIT_MIN = 1;
+const INIT_MAX = 20;
+
+function $(sel){ return document.querySelector(sel); }
+function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+function deepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
+function toName(raw){ return String(raw).replaceAll("_"," "); }
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function sampleUnique(arr, n){
+  const copy = arr.slice();
+  shuffle(copy);
+  return copy.slice(0, n);
+}
+
+let UID = 1;
+function makeHeroInstance(base){
+  const addOnValue = Number(base.addOnValue);
+  const hasAddon = addOnValue > 0;
+
+  return {
+    uid: UID++,
+    name: toName(base.name),
+    type: TYPES[Math.floor(Math.random()*TYPES.length)],
+    atk: Number(base.atk),
+    maxHP: Number(base.hp),
+    hp: Number(base.hp),
+    addOnValue,
+    addOnType: hasAddon ? (Math.random() < 0.5 ? "ATK" : "HP") : "NONE"
+  };
+}
+
+function parseCSV(csv){
+  const lines = csv.trim().split(/\r?\n/);
+  const header = lines.shift().split(",");
+  const idx = {
+    name: header.indexOf("Name"),
+    atk: header.indexOf("Power_Attack"),
+    hp: header.indexOf("HP"),
+    add: header.indexOf("Add_On"),
+  };
+  return lines.map(line=>{
+    const parts = line.split(",");
+    return {
+      name: parts[idx.name],
+      atk: Number(parts[idx.atk]),
+      hp: Number(parts[idx.hp]),
+      addOnValue: Number(parts[idx.add]),
+    };
+  });
+}
+
+const HERO_BASE = parseCSV(HERO_CSV);
+
+function addonLabel(hero){
+  if(hero.addOnValue <= 0 || hero.addOnType === "NONE") return "Tidak ada";
+  if(hero.addOnType === "ATK") return `+${hero.addOnValue} ATK (Trigger saat menyerang)`;
+  return `+${hero.addOnValue} HP (Trigger saat menyerang)`;
+}
+
+function heroAlive(hero){ return hero && hero.hp > 0; }
+
+function countKO(roster){
+  return roster.filter(h => h.hp <= 0).length;
+}
+
+function allDead(roster){
+  return roster.every(h => h.hp <= 0);
+}
+
+/* =========================
+   Game State
+========================= */
+
+const game = {
+  phase: "intro", // intro | draft | init | battle | over
+  draft: {
+    playerIndex: 0,
+    pool: [],
+    selectedUIDs: [],
+    selectedOrder: [] // array of hero instances in chosen order
+  },
+  init: {
+    stage: 0, // 0 = P1 input, 1 = P2 input, 2 = resolved
+    guesses: [null, null],
+    rolled: null,
+    firstPlayer: null
+  },
+  battle: {
+    activePlayer: 0,
+    selectedAttackerSlot: null,
+    waitingForLogContinue: false,
+    lastLog: ""
+  },
+  players: [
+    { name: "Player 1", roster: [], arena: [null,null,null] },
+    { name: "Player 2", roster: [], arena: [null,null,null] }
+  ]
+};
+
+/* =========================
+   UI helpers
+========================= */
+
+function showScreen(id){
+  document.querySelectorAll("main .screen").forEach(s => s.classList.remove("active"));
+  $(id).classList.add("active");
+}
+
+function openPassOverlay(title, text, mini=null, buttonText="Klik untuk Mulai", onOk=null){
+  $("#passTitle").textContent = title;
+  $("#passText").textContent = text;
+  const miniEl = $("#passMini");
+  if(mini){
+    miniEl.style.display = "block";
+    miniEl.textContent = mini;
+  }else{
+    miniEl.style.display = "none";
+    miniEl.textContent = "";
+  }
+
+  $("#btnPassOk").textContent = buttonText;
+  $("#overlayPass").classList.add("active");
+
+  // replace handler safely
+  $("#btnPassOk").onclick = () => {
+    $("#overlayPass").classList.remove("active");
+    if(onOk) onOk();
+  };
+}
+
+function openLogOverlay(text, onNext){
+  $("#logText").textContent = text;
+  $("#overlayLog").classList.add("active");
+  $("#btnLogNext").onclick = () => {
+    $("#overlayLog").classList.remove("active");
+    if(onNext) onNext();
+  };
+}
+
+function openHelp(){
+  $("#overlayHelp").classList.add("active");
+}
+function closeHelp(){
+  $("#overlayHelp").classList.remove("active");
+}
+
+function formatHeroMeta(hero){
+  const add = (hero.addOnValue>0 && hero.addOnType!=="NONE")
+    ? (hero.addOnType === "ATK" ? `Add-on: +${hero.addOnValue} ATK` : `Add-on: +${hero.addOnValue} HP`)
+    : "Add-on: -";
+  return `${hero.type} • ATK ${hero.atk} • HP ${hero.hp}/${hero.maxHP} • ${add}`;
+}
+
+/* =========================
+   Draft Phase
+========================= */
+
+function beginDraft(playerIndex){
+  game.phase = "draft";
+  game.draft.playerIndex = playerIndex;
+  game.draft.selectedUIDs = [];
+  game.draft.selectedOrder = [];
+
+  // pool 10 hero random unique (per player)
+  const bases = sampleUnique(HERO_BASE, 10);
+  game.draft.pool = bases.map(makeHeroInstance);
+
+  $("#draftTitle").textContent = `Draft ${game.players[playerIndex].name}`;
+  $("#draftCounter").textContent = "Terpilih: 0/6";
+  $("#draftNote").textContent = "Pilih tepat 6 hero";
+  $("#btnDraftConfirm").disabled = true;
+
+  renderDraft();
+  showScreen("#screenDraft");
+}
+
+function renderDraft(){
+  const pIdx = game.draft.playerIndex;
+  $("#draftInstruction").textContent =
+    `${game.players[pIdx].name}: Pilih 6 hero dari 10. Pastikan pemain lain tidak melihat layar. ` +
+    `Urutan roster penting: 3 pertama = Arena awal (3vs3).`;
+
+  // Pool render
+  const poolEl = $("#draftPool");
+  poolEl.innerHTML = "";
+  game.draft.pool.forEach((hero)=>{
+    const selected = game.draft.selectedUIDs.includes(hero.uid);
+
+    const div = document.createElement("div");
+    div.className = "card" + (selected ? " selected" : "");
+    div.innerHTML = `
+      <div class="cardhead">
+        <div class="name">${hero.name}</div>
+        <div class="type">${hero.type}</div>
+      </div>
+      <table class="stats">
+        <tr><td>HP</td><td class="hp">${hero.hp}/${hero.maxHP}</td></tr>
+        <tr><td>ATK</td><td class="atk">${hero.atk}</td></tr>
+      </table>
+      <div class="addon">
+        <div>Add-on</div>
+        <span class="badge ${hero.addOnValue>0 ? (hero.addOnType==="ATK"?"warn":"good") : "muted"}">${addonLabel(hero)}</span>
+      </div>
+    `;
+
+    div.onclick = () => toggleDraftHero(hero.uid);
+    poolEl.appendChild(div);
+  });
+
+  // Order render
+  const orderEl = $("#draftOrder");
+  orderEl.innerHTML = "";
+  if(game.draft.selectedOrder.length === 0){
+    const empty = document.createElement("div");
+    empty.className = "small";
+    empty.textContent = "Belum ada hero dipilih.";
+    orderEl.appendChild(empty);
+  } else {
+    game.draft.selectedOrder.forEach((hero, i)=>{
+      const row = document.createElement("div");
+      row.className = "orderItem";
+      row.innerHTML = `
+        <div class="left">
+          <div><b>${i+1}.</b> ${hero.name}</div>
+          <div class="meta">${formatHeroMeta(hero)}</div>
+        </div>
+        <div class="right">
+          <button class="btn-ghost" ${i===0?"disabled":""} data-act="up">↑</button>
+          <button class="btn-ghost" ${i===game.draft.selectedOrder.length-1?"disabled":""} data-act="down">↓</button>
+          <button class="btn-ghost" data-act="remove">Hapus</button>
+        </div>
+      `;
+
+      row.querySelector('[data-act="up"]').onclick = () => moveSelected(i, -1);
+      row.querySelector('[data-act="down"]').onclick = () => moveSelected(i, +1);
+      row.querySelector('[data-act="remove"]').onclick = () => removeSelected(hero.uid);
+
+      orderEl.appendChild(row);
+    });
+  }
+
+  const n = game.draft.selectedOrder.length;
+  $("#draftCounter").textContent = `Terpilih: ${n}/6`;
+  $("#btnDraftConfirm").disabled = (n !== 6);
+}
+
+function toggleDraftHero(uid){
+  const idx = game.draft.selectedUIDs.indexOf(uid);
+  if(idx >= 0){
+    removeSelected(uid);
+    return;
+  }
+
+  if(game.draft.selectedOrder.length >= 6){
+    $("#draftNote").textContent = "Maksimal 6 hero. Hapus salah satu jika ingin ganti.";
+    return;
+  }
+
+  const hero = game.draft.pool.find(h => h.uid === uid);
+  if(!hero) return;
+
+  game.draft.selectedUIDs.push(uid);
+  game.draft.selectedOrder.push(hero);
+  $("#draftNote").textContent = "Pilih tepat 6 hero";
+  renderDraft();
+}
+
+function removeSelected(uid){
+  game.draft.selectedUIDs = game.draft.selectedUIDs.filter(x=>x!==uid);
+  game.draft.selectedOrder = game.draft.selectedOrder.filter(h=>h.uid!==uid);
+  $("#draftNote").textContent = "Pilih tepat 6 hero";
+  renderDraft();
+}
+
+function moveSelected(i, delta){
+  const arr = game.draft.selectedOrder;
+  const j = i + delta;
+  if(j < 0 || j >= arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  renderDraft();
+}
+
+function confirmDraft(){
+  const pIdx = game.draft.playerIndex;
+  if(game.draft.selectedOrder.length !== 6) return;
+
+  game.players[pIdx].roster = game.draft.selectedOrder.map(h => deepCopy(h));
+  game.players[pIdx].arena = [0,1,2];
+
+  // Next phase
+  if(pIdx === 0){
+    openPassOverlay(
+      "Draft Player 1 selesai",
+      "Serahkan perangkat ke Player 2. Pastikan Player 1 tidak melihat layar saat Player 2 draft.",
+      `Roster Player 1 tersimpan (6 hero).`,
+      "Mulai Draft Player 2",
+      () => beginDraft(1)
+    );
+  } else {
+    openPassOverlay(
+      "Draft Player 2 selesai",
+      "Sekarang lanjut ke Initiative. Serahkan perangkat dengan aman.",
+      `Roster Player 2 tersimpan (6 hero).`,
+      "Mulai Initiative",
+      () => beginInitiative()
+    );
+  }
+}
+
+/* =========================
+   Initiative Phase
+========================= */
+
+function beginInitiative(){
+  game.phase = "init";
+  game.init.stage = 0;
+  game.init.guesses = [null, null];
+  game.init.rolled = null;
+  game.init.firstPlayer = null;
+
+  $("#initSummary").textContent = "Belum ada hasil.";
+  $("#btnInitContinue").disabled = true;
+  $("#guessInput").value = "";
+
+  renderInitiativeUI();
+
+  showScreen("#screenInit");
+  // Privacy: prompt player 1 input
+  openPassOverlay(
+    "Initiative — Input Player 1",
+    "Player 1: masukkan tebakan angka 1–20. Pastikan Player 2 tidak melihat.",
+    null,
+    "Mulai Input Player 1",
+    () => {}
+  );
+}
+
+function renderInitiativeUI(){
+  const st = game.init.stage;
+  const prompt = (st === 0) ? "Input tebakan Player 1" :
+                 (st === 1) ? "Input tebakan Player 2" :
+                 "Hasil Initiative";
+  $("#initPrompt").textContent = prompt;
+  $("#initStagePill").textContent = (st === 0) ? "P1" : (st === 1) ? "P2" : "DONE";
+  $("#btnGuessConfirm").disabled = (st >= 2);
+  $("#guessInput").disabled = (st >= 2);
+}
+
+function confirmGuess(){
+  const st = game.init.stage;
+  if(st >= 2) return;
+
+  const val = Number($("#guessInput").value);
+  if(!Number.isFinite(val) || val < INIT_MIN || val > INIT_MAX){
+    openLogOverlay(`Input tidak valid.\nMasukkan angka ${INIT_MIN}–${INIT_MAX}.`, () => {});
+    return;
+  }
+
+  game.init.guesses[st] = val;
+  $("#guessInput").value = "";
+
+  if(st === 0){
+    game.init.stage = 1;
+    renderInitiativeUI();
+    openPassOverlay(
+      "Initiative — Giliran Player 2",
+      "Serahkan perangkat ke Player 2. Player 2: masukkan tebakan angka 1–20.",
+      null,
+      "Mulai Input Player 2",
+      () => {}
+    );
+    return;
+  }
+
+  // Resolve
+  game.init.stage = 2;
+  game.init.rolled = INIT_MIN + Math.floor(Math.random() * (INIT_MAX - INIT_MIN + 1));
+
+  const g1 = game.init.guesses[0];
+  const g2 = game.init.guesses[1];
+  const r = game.init.rolled;
+
+  const d1 = Math.abs(g1 - r);
+  const d2 = Math.abs(g2 - r);
+
+  let first = null;
+  if(d1 < d2) first = 0;
+  else if(d2 < d1) first = 1;
+  else first = (Math.random() < 0.5 ? 0 : 1); // tie-break coin flip
+
+  game.init.firstPlayer = first;
+
+  $("#initSummary").textContent =
+`Undian Sistem: ${r}
+Tebakan Player 1: ${g1} (selisih ${d1})
+Tebakan Player 2: ${g2} (selisih ${d2})
+
+Giliran pertama: ${game.players[first].name}`;
+
+  $("#btnInitContinue").disabled = false;
+  renderInitiativeUI();
+}
+
+/* =========================
+   Battle Phase (3v3 arena)
+========================= */
+
+function refillArena(playerIndex){
+  const p = game.players[playerIndex];
+  const inArena = new Set(p.arena.filter(x => x !== null));
+  for(let slot=0; slot<3; slot++){
+    const ri = p.arena[slot];
+    if(ri === null) continue;
+    const hero = p.roster[ri];
+    if(hero && hero.hp > 0) continue;
+
+    // Need replacement from bench: find first alive roster index not in arena
+    let repl = null;
+    for(let i=0;i<p.roster.length;i++){
+      if(inArena.has(i)) continue;
+      if(p.roster[i].hp > 0){ repl = i; break; }
+    }
+    if(repl !== null){
+      inArena.delete(ri);
+      inArena.add(repl);
+      p.arena[slot] = repl;
+    } else {
+      // no replacement
+      p.arena[slot] = null;
+    }
+  }
+}
+
+function beginBattle(){
+  game.phase = "battle";
+  game.battle.activePlayer = game.init.firstPlayer ?? 0;
+  game.battle.selectedAttackerSlot = null;
+  game.battle.waitingForLogContinue = false;
+  game.battle.lastLog = "";
+
+  // ensure arena valid
+  refillArena(0);
+  refillArena(1);
+
+  showScreen("#screenBattle");
+
+  // Pass overlay: start turn
+  openPassOverlay(
+    `Giliran ${game.players[game.battle.activePlayer].name}`,
+    `Serahkan perangkat ke ${game.players[game.battle.activePlayer].name}. Pastikan pemain lain tidak melihat detail kartu.`,
+    null,
+    "Klik untuk Mulai Turn",
+    () => {
+      renderBattle();
+    }
+  );
+}
+
+function getArenaHero(playerIndex, slot){
+  const p = game.players[playerIndex];
+  const ri = p.arena[slot];
+  if(ri === null || ri === undefined) return null;
+  return p.roster[ri] || null;
+}
+
+function renderBattle(){
+  const ap = game.battle.activePlayer;
+  const ep = 1 - ap;
+
+  $("#battleTitle").textContent = `Battle — ${game.players[ap].name} menyerang`;
+  $("#turnInfo").textContent = `Giliran: ${game.players[ap].name}`;
+  $("#btnEndTurn").disabled = true;
+
+  // selection text
+  $("#selectInfo").textContent = (game.battle.selectedAttackerSlot === null)
+    ? "Pilih penyerang (arena)"
+    : `Penyerang dipilih: Slot ${String.fromCharCode(65 + game.battle.selectedAttackerSlot)} — pilih target musuh`;
+
+  $("#mySideTitle").textContent = `${game.players[ap].name} (Kartu Kamu)`;
+  $("#enemyTitle").textContent = `Musuh: ${game.players[ep].name}`;
+
+  // My arena
+  const myArenaEl = $("#myArena");
+  myArenaEl.innerHTML = "";
+  for(let slot=0; slot<3; slot++){
+    const hero = getArenaHero(ap, slot);
+    const div = document.createElement("div");
+    const isSelected = (game.battle.selectedAttackerSlot === slot);
+    div.className = "card" + (isSelected ? " selected" : "") + (!heroAlive(hero) ? " dead" : "");
+    if(!hero){
+      div.className = "card dead";
+      div.innerHTML = `
+        <div class="cardhead">
+          <div class="name">Slot ${String.fromCharCode(65+slot)} — Kosong</div>
+          <div class="type">-</div>
+        </div>
+        <div class="small">Tidak ada hero tersisa untuk mengisi slot ini.</div>
+      `;
+    } else {
+      div.innerHTML = `
+        <div class="cardhead">
+          <div class="name">Slot ${String.fromCharCode(65+slot)} — ${hero.name}</div>
+          <div class="type">${hero.type}</div>
+        </div>
+        <table class="stats">
+          <tr><td>HP</td><td class="hp">${hero.hp}/${hero.maxHP} ${hero.hp<=0 ? "(KO)" : ""}</td></tr>
+          <tr><td>ATK</td><td class="atk">${hero.atk}</td></tr>
+        </table>
+        <div class="addon">
+          <div>Add-on</div>
+          <span class="badge ${hero.addOnValue>0 ? (hero.addOnType==="ATK"?"warn":"good") : "muted"}">${addonLabel(hero)}</span>
+        </div>
+      `;
+
+      div.onclick = () => {
+        if(game.battle.waitingForLogContinue) return;
+        if(!heroAlive(hero)) return;
+        game.battle.selectedAttackerSlot = slot;
+        renderBattle();
+      };
+    }
+    myArenaEl.appendChild(div);
+  }
+
+  // My bench (all roster not in arena, show detailed but locked)
+  const myBenchEl = $("#myBench");
+  myBenchEl.innerHTML = "";
+  const p = game.players[ap];
+  const inArena = new Set(p.arena.filter(x=>x!==null));
+  const bench = [];
+  for(let i=0;i<p.roster.length;i++){
+    if(inArena.has(i)) continue;
+    bench.push({ idx:i, hero:p.roster[i] });
+  }
+  if(bench.length === 0){
+    const empty = document.createElement("div");
+    empty.className = "small";
+    empty.textContent = "Bench kosong (semua roster sudah terpakai / KO).";
+    myBenchEl.appendChild(empty);
+  } else {
+    bench.forEach(({idx, hero})=>{
+      const div = document.createElement("div");
+      div.className = "card locked" + (!heroAlive(hero) ? " dead" : "");
+      div.innerHTML = `
+        <div class="cardhead">
+          <div class="name">Bench — ${hero.name}</div>
+          <div class="type">${hero.type}</div>
+        </div>
+        <table class="stats">
+          <tr><td>HP</td><td class="hp">${hero.hp}/${hero.maxHP} ${hero.hp<=0 ? "(KO)" : ""}</td></tr>
+          <tr><td>ATK</td><td class="atk">${hero.atk}</td></tr>
+        </table>
+        <div class="addon">
+          <div>Add-on</div>
+          <span class="badge ${hero.addOnValue>0 ? (hero.addOnType==="ATK"?"warn":"good") : "muted"}">${addonLabel(hero)}</span>
+        </div>
+      `;
+      myBenchEl.appendChild(div);
+    });
+  }
+
+  // Enemy arena - hidden
+  const enemyArenaEl = $("#enemyArena");
+  enemyArenaEl.innerHTML = "";
+  for(let slot=0; slot<3; slot++){
+    const hero = getArenaHero(ep, slot);
+    const div = document.createElement("div");
+    div.className = "card" + (!heroAlive(hero) ? " dead" : "");
+    const label = `Kartu Musuh ${String.fromCharCode(65 + slot)}`;
+    if(!hero){
+      div.className = "card dead";
+      div.innerHTML = `
+        <div class="cardhead">
+          <div class="name">${label} — Kosong</div>
+          <div class="type">?</div>
+        </div>
+        <div class="small">Slot kosong (musuh kehabisan hero untuk arena ini).</div>
+      `;
+    } else {
+      div.innerHTML = `
+        <div class="cardhead">
+          <div class="name">${label}</div>
+          <div class="type">Tertutup</div>
+        </div>
+        <table class="stats">
+          <tr><td>HP</td><td class="hp">???</td></tr>
+          <tr><td>ATK</td><td class="atk">???</td></tr>
+        </table>
+        <div class="addon">
+          <div>Add-on</div>
+          <span class="badge muted">???</span>
+        </div>
+      `;
+
+      div.onclick = () => {
+        if(game.battle.waitingForLogContinue) return;
+        if(game.battle.selectedAttackerSlot === null) return;
+        if(!heroAlive(hero)) return;
+        performAttack(game.battle.selectedAttackerSlot, slot);
+      };
+    }
+    enemyArenaEl.appendChild(div);
+  }
+
+  // Status
+  const p1ko = countKO(game.players[0].roster);
+  const p2ko = countKO(game.players[1].roster);
+  $("#battleStatus").textContent =
+`${game.players[0].name}: KO ${p1ko}/6
+${game.players[1].name}: KO ${p2ko}/6`;
+}
+
+function performAttack(attackerSlot, targetSlot){
+  const ap = game.battle.activePlayer;
+  const ep = 1 - ap;
+
+  const attacker = getArenaHero(ap, attackerSlot);
+  const defender = getArenaHero(ep, targetSlot);
+
+  if(!heroAlive(attacker) || !heroAlive(defender)) return;
+
+  // Add-on triggers here
+  let bonusAtk = 0;
+  let heal = 0;
+  let addonDesc = "tanpa Add-on";
+
+  if(attacker.addOnValue > 0 && attacker.addOnType !== "NONE"){
+    if(attacker.addOnType === "ATK"){
+      bonusAtk = attacker.addOnValue;
+      addonDesc = `mengaktifkan Add-on [+${bonusAtk} ATK]`;
+    } else if(attacker.addOnType === "HP"){
+      heal = attacker.addOnValue;
+      addonDesc = `mengaktifkan Add-on [+${heal} HP]`;
+    }
+  }
+
+  const damage = attacker.atk + bonusAtk;
+  const beforeHP = defender.hp;
+  defender.hp = Math.max(0, defender.hp - damage);
+  const dealt = beforeHP - defender.hp;
+
+  let healed = 0;
+  if(heal > 0 && attacker.hp > 0){
+    const before = attacker.hp;
+    attacker.hp = Math.min(attacker.maxHP, attacker.hp + heal);
+    healed = attacker.hp - before;
+  }
+
+  const targetLabel = `Kartu Musuh ${String.fromCharCode(65 + targetSlot)}`;
+  const targetRevealed = defender.name;
+
+  // refill enemy arena if defender KO
+  refillArena(ep);
+
+  // win check
+  if(allDead(game.players[ep].roster)){
+    const log =
+`${game.players[ap].name} menang!
+
+Ringkasan serangan terakhir:
+Hero [${attacker.name}] ${addonDesc} dan menyerang ${targetLabel}!
+${targetLabel} ternyata adalah [${targetRevealed}].
+Damage: ${damage} (HP musuh berkurang ${dealt}).
+${defender.hp<=0 ? `[${targetRevealed}] KO.` : `Sisa HP target: ${defender.hp}/${defender.maxHP}.`}
+${heal>0 ? `Penyerang heal: ${healed} (HP sekarang ${attacker.hp}/${attacker.maxHP}).` : ""}`;
+
+    game.phase = "over";
+    game.battle.waitingForLogContinue = true;
+
+    openLogOverlay(log, () => {
+      endGame(ap);
+    });
+    return;
+  }
+
+  // Compose log
+  const log =
+`Hero [${attacker.name}] ${addonDesc} dan menyerang ${targetLabel}!
+${targetLabel} ternyata adalah [${targetRevealed}].
+Damage: ${damage} (HP musuh berkurang ${dealt}).
+${defender.hp<=0 ? `[${targetRevealed}] KO.` : `Sisa HP target: ${defender.hp}/${defender.maxHP}.`}
+${(heal>0) ? `Penyerang heal: ${healed} (HP sekarang ${attacker.hp}/${attacker.maxHP}).` : ""}`;
+
+  game.battle.waitingForLogContinue = true;
+
+  openLogOverlay(log, () => {
+    // After log continue, end turn automatically with pass overlay
+    game.battle.selectedAttackerSlot = null;
+    game.battle.waitingForLogContinue = false;
+    endTurn();
+  });
+
+  renderBattle();
+}
+
+function endTurn(){
+  const ap = game.battle.activePlayer;
+  const next = 1 - ap;
+  game.battle.activePlayer = next;
+
+  openPassOverlay(
+    `Giliran ${game.players[next].name}`,
+    `Giliran selesai. Serahkan perangkat ke ${game.players[next].name}.`,
+    null,
+    "Klik untuk Mulai Turn",
+    () => renderBattle()
+  );
+}
+
+/* =========================
+   Game Over
+========================= */
+
+function endGame(winnerIndex){
+  showScreen("#screenOver");
+  const loserIndex = 1 - winnerIndex;
+  $("#overTitle").textContent = `Kemenangan: ${game.players[winnerIndex].name}`;
+  $("#overHint").textContent = `${game.players[loserIndex].name} kehilangan semua 6 hero.`;
+
+  const p1ko = countKO(game.players[0].roster);
+  const p2ko = countKO(game.players[1].roster);
+
+  const rosterText = (idx) => {
+    const p = game.players[idx];
+    return p.roster.map((h,i)=>{
+      const status = h.hp<=0 ? "KO" : `${h.hp}/${h.maxHP}`;
+      const addon = (h.addOnValue>0 && h.addOnType!=="NONE")
+        ? (h.addOnType==="ATK" ? `+${h.addOnValue} ATK` : `+${h.addOnValue} HP`)
+        : "-";
+      return `${i+1}. ${h.name} (${h.type}) | HP ${status} | ATK ${h.atk} | Add-on ${addon}`;
+    }).join("\n");
+  };
+
+  $("#overSummary").textContent =
+`Final Status:
+${game.players[0].name}: KO ${p1ko}/6
+${game.players[1].name}: KO ${p2ko}/6
+
+Roster ${game.players[0].name}:
+${rosterText(0)}
+
+Roster ${game.players[1].name}:
+${rosterText(1)}`;
+}
+
+/* =========================
+   Wiring Buttons
+========================= */
+
+function resetGame(){
+  UID = 1;
+  game.phase = "intro";
+  game.players = [
+    { name: "Player 1", roster: [], arena: [null,null,null] },
+    { name: "Player 2", roster: [], arena: [null,null,null] }
+  ];
+  game.draft = { playerIndex: 0, pool: [], selectedUIDs: [], selectedOrder: [] };
+  game.init = { stage: 0, guesses: [null,null], rolled: null, firstPlayer: null };
+  game.battle = { activePlayer: 0, selectedAttackerSlot: null, waitingForLogContinue: false, lastLog: "" };
+
+  $("#overlayPass").classList.remove("active");
+  $("#overlayLog").classList.remove("active");
+  $("#overlayHelp").classList.remove("active");
+
+  showScreen("#screenIntro");
+}
+
+$("#btnStart").onclick = () => {
+  openPassOverlay(
+    "Mulai Draft",
+    "Player 1 akan memulai draft. Pastikan Player 2 tidak melihat layar.",
+    null,
+    "Mulai Draft Player 1",
+    () => beginDraft(0)
+  );
+};
+
+$("#btnNew").onclick = () => {
+  openPassOverlay(
+    "Mulai Baru?",
+    "Game akan di-reset. Lanjutkan?",
+    "Klik tombol untuk reset.",
+    "Reset Game",
+    () => resetGame()
+  );
+};
+
+$("#btnHelp").onclick = openHelp;
+$("#btnHelpClose").onclick = closeHelp;
+
+$("#btnDraftBack").onclick = () => {
+  // allow back only to intro for simplicity
+  openPassOverlay(
+    "Kembali ke Menu",
+    "Kembali ke menu utama? Draft saat ini akan hilang.",
+    null,
+    "Kembali",
+    () => resetGame()
+  );
+};
+
+$("#btnDraftConfirm").onclick = () => {
+  // privacy reminder
+  openPassOverlay(
+    "Konfirmasi Draft",
+    `Pastikan hanya ${game.players[game.draft.playerIndex].name} yang melihat roster ini. Klik untuk mengunci pilihan.`,
+    `Terpilih: ${game.draft.selectedOrder.map(h=>h.name).join(", ")}`,
+    "Kunci & Lanjut",
+    () => confirmDraft()
+  );
+};
+
+$("#btnInitBack").onclick = () => {
+  openPassOverlay(
+    "Kembali ke Draft",
+    "Kembali ke menu utama? Progress initiative akan hilang.",
+    null,
+    "Kembali",
+    () => resetGame()
+  );
+};
+
+$("#btnGuessConfirm").onclick = confirmGuess;
+
+$("#btnInitContinue").onclick = () => {
+  // Start battle with pass overlay to first player
+  beginBattle();
+};
+
+$("#btnBattleBack").onclick = () => {
+  // debug / escape hatch: return to intro
+  openPassOverlay(
+    "Keluar Battle (Debug)",
+    "Kembali ke menu utama? Game akan di-reset.",
+    null,
+    "Reset",
+    () => resetGame()
+  );
+};
+
+$("#btnEndTurn").onclick = () => {
+  // not used (turn ends via log), but keep safe
+  if(!game.battle.waitingForLogContinue) endTurn();
+};
+
+$("#btnRestart").onclick = () => resetGame();
+
+// init on load
+resetGame();
+</script>
+</body>
+</html>
