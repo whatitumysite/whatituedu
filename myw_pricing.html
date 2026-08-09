@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WHATITU PRICING HELPER</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --success: #16a34a;
+            --success-light: #dcfce7;
+            --warning: #ea580c;
+            --warning-light: #fff7ed;
+            --danger: #dc2626;
+            --danger-light: #fef2f2;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --radius: 16px;
+            --radius-sm: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 32px 16px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+            border-radius: 0 0 32px 32px;
+            margin: -16px -16px 24px;
+            color: white;
+        }
+
+        .header-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 28px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 13px;
+            opacity: 0.9;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-100);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title .icon {
+            font-size: 20px;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 6px;
+        }
+
+        .label-hint {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--gray-400);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-prefix {
+            position: absolute;
+            left: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-400);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-400);
+            pointer-events: none;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            background: var(--gray-50);
+            color: var(--gray-800);
+            transition: all 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        input.has-prefix {
+            padding-left: 40px;
+        }
+
+        input.has-suffix {
+            padding-right: 40px;
+        }
+
+        input::placeholder {
+            color: var(--gray-300);
+        }
+
+        /* Toggle / Radio Buttons */
+        .toggle-group {
+            display: flex;
+            gap: 8px;
+            background: var(--gray-100);
+            padding: 4px;
+            border-radius: var(--radius-sm);
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px 12px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-500);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Button */
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-reset {
+            width: 100%;
+            padding: 12px;
+            background: var(--gray-100);
+            color: var(--gray-600);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover {
+            background: var(--gray-200);
+        }
+
+        /* Results */
+        #results {
+            display: none;
+        }
+
+        .result-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+            color: white;
+            border-radius: var(--radius);
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .result-hero .result-label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .result-hero .result-value {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .result-hero .result-note {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-100);
+        }
+
+        .result-card .rc-label {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .result-card .rc-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .result-card .rc-desc {
+            font-size: 11px;
+            color: var(--gray-400);
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .result-card.full {
+            grid-column: 1 / -1;
+        }
+
+        .result-card.highlight-green {
+            background: var(--success-light);
+            border-color: #bbf7d0;
+        }
+
+        .result-card.highlight-green .rc-value {
+            color: var(--success);
+        }
+
+        .result-card.highlight-orange {
+            background: var(--warning-light);
+            border-color: #fed7aa;
+        }
+
+        .result-card.highlight-orange .rc-value {
+            color: var(--warning);
+        }
+
+        .result-card.highlight-red {
+            background: var(--danger-light);
+            border-color: #fecaca;
+        }
+
+        .result-card.highlight-red .rc-value {
+            color: var(--danger);
+        }
+
+        /* Comparison */
+        .comparison-bar {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-100);
+            margin-bottom: 16px;
+        }
+
+        .comparison-bar .comp-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 12px;
+        }
+
+        .comp-items {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .comp-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .comp-item .ci-label {
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        .comp-item .ci-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .comp-arrow {
+            font-size: 20px;
+            color: var(--gray-300);
+        }
+
+        .comp-message {
+            font-size: 13px;
+            padding: 12px;
+            border-radius: 10px;
+            line-height: 1.5;
+        }
+
+        .comp-message.below {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .comp-message.above {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .comp-message.equal {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* Simulation */
+        .sim-section {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-100);
+            margin-bottom: 16px;
+        }
+
+        .sim-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sim-desc {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 16px;
+        }
+
+        .slider-container {
+            margin-bottom: 16px;
+        }
+
+        .slider-value {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--gray-200);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--gray-400);
+            margin-top: 4px;
+        }
+
+        .sim-results {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .sim-result-item {
+            text-align: center;
+            padding: 12px 8px;
+            background: var(--gray-50);
+            border-radius: 10px;
+        }
+
+        .sim-result-item .sri-label {
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        .sim-result-item .sri-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .sim-estimates {
+            background: var(--gray-50);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+        }
+
+        .sim-estimates .se-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 8px;
+        }
+
+        .se-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 13px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .se-row:last-child {
+            border-bottom: none;
+        }
+
+        .se-row .se-qty {
+            color: var(--gray-500);
+        }
+
+        .se-row .se-profit {
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        /* Price change presets */
+        .price-presets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .preset-btn {
+            padding: 10px 8px;
+            border: 2px solid var(--gray-200);
+            background: white;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .preset-btn:hover, .preset-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .preset-btn.down {
+            color: var(--danger);
+        }
+
+        .preset-btn.down:hover, .preset-btn.down.active {
+            border-color: var(--danger);
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .preset-btn.up {
+            color: var(--success);
+        }
+
+        .preset-btn.up:hover, .preset-btn.up.active {
+            border-color: var(--success);
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .preset-impact {
+            background: var(--gray-50);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            display: none;
+        }
+
+        .preset-impact .pi-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 13px;
+        }
+
+        .preset-impact .pi-label {
+            color: var(--gray-500);
+        }
+
+        .preset-impact .pi-value {
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        /* Target table */
+        .target-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
+        }
+
+        .target-table th {
+            background: var(--gray-100);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+
+        .target-table th:first-child {
+            border-radius: 10px 0 0 0;
+        }
+
+        .target-table th:last-child {
+            border-radius: 0 10px 0 0;
+        }
+
+        .target-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .target-table tr:last-child td:first-child {
+            border-radius: 0 0 0 10px;
+        }
+
+        .target-table tr:last-child td:last-child {
+            border-radius: 0 0 10px 0;
+        }
+
+        .target-table .highlight-row {
+            background: var(--primary-light);
+        }
+
+        .target-table .highlight-row td {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* BEP Section */
+        .bep-result {
+            text-align: center;
+            padding: 16px;
+            background: var(--gray-50);
+            border-radius: var(--radius-sm);
+        }
+
+        .bep-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .bep-unit {
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+
+        .bep-desc {
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        /* Margin vs Markup explanation */
+        .info-box {
+            background: var(--primary-light);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            font-size: 13px;
+            color: var(--primary-dark);
+            line-height: 1.6;
+            margin-top: 12px;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            background: var(--warning-light);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            font-size: 12px;
+            color: var(--warning);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .disclaimer strong {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 13px;
+        }
+
+        /* Privacy note */
+        .privacy-note {
+            text-align: center;
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px 16px 32px;
+            border-top: 1px solid var(--gray-200);
+            margin-top: 24px;
+        }
+
+        .footer .f-name {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--gray-800);
+            margin-bottom: 2px;
+        }
+
+        .footer .f-copy {
+            font-size: 12px;
+            color: var(--gray-400);
+        }
+
+        .footer .f-tagline {
+            font-size: 12px;
+            color: var(--gray-400);
+            font-style: italic;
+            margin-top: 4px;
+        }
+
+        /* Tooltip */
+        .tooltip-trigger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: var(--gray-200);
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gray-500);
+            cursor: help;
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+
+        .tooltip-content {
+            display: none;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 12px;
+            color: var(--gray-600);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        .tooltip-content.show {
+            display: block;
+        }
+
+        /* Error */
+        .input-error {
+            border-color: var(--danger) !important;
+        }
+
+        .error-msg {
+            font-size: 12px;
+            color: var(--danger);
+            margin-top: 4px;
+            display: none;
+        }
+
+        /* Conditional sections */
+        .conditional {
+            display: none;
+        }
+
+        .conditional.show {
+            display: block;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        /* Interpretation block */
+        .interpretation {
+            background: var(--gray-50);
+            border-left: 4px solid var(--primary);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            padding: 14px;
+            font-size: 13px;
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-top: 12px;
+        }
+
+        /* Section divider */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0 16px;
+        }
+
+        .section-divider .line {
+            flex: 1;
+            height: 1px;
+            background: var(--gray-200);
+        }
+
+        .section-divider .text {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive */
+        @media (max-width: 400px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+            .sim-results {
+                grid-template-columns: 1fr;
+            }
+            .price-presets {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .result-hero .result-value {
+                font-size: 28px;
+            }
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Number input arrows removal */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-icon">💰</div>
+            <h1>WHATITU PRICING HELPER</h1>
+            <p>Bantu kamu menentukan harga jual yang lebih masuk akal berdasarkan biaya dan target keuntungan</p>
+        </div>
+
+        <!-- Input Form -->
+        <form id="pricingForm" onsubmit="return false;">
+            <!-- 1. Nama Produk -->
+            <div class="card">
+                <div class="card-title"><span class="icon">📦</span> Nama Produk</div>
+                <div class="card-desc">Nama produk yang ingin kamu hitung harganya. Ini hanya digunakan sebagai identitas agar hasil perhitungan lebih mudah dipahami. (Opsional)</div>
+                <div class="form-group">
+                    <input type="text" id="productName" placeholder='Contoh: "Es Kopi Susu"'>
+                </div>
+            </div>
+
+            <!-- 2. Biaya Bahan / Modal -->
+            <div class="card">
+                <div class="card-title"><span class="icon">🧾</span> Modal / Biaya Bahan</div>
+                <div class="card-desc">Berapa uang yang kamu keluarkan untuk membuat atau mendapatkan 1 produk sebelum dijual. Contoh: Jika membuat 1 porsi makanan membutuhkan bahan senilai Rp8.000, masukkan 8000.</div>
+                <div class="form-group">
+                    <label>Modal per produk
+                        <span class="label-hint">Biaya bahan/modal untuk 1 produk</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">Rp</span>
+                        <input type="number" id="modalPerProduct" class="has-prefix" placeholder="8000" min="0" inputmode="numeric">
+                    </div>
+                    <div class="error-msg" id="errModal">Masukkan angka yang valid</div>
+                </div>
+            </div>
+
+            <!-- 3. Biaya Operasional -->
+            <div class="card">
+                <div class="card-title"><span class="icon">⚙️</span> Biaya Operasional</div>
+                <div class="card-desc">Biaya lain agar usaha tetap berjalan, misalnya listrik, sewa tempat, internet, bensin, kemasan, gaji, atau biaya platform.</div>
+
+                <div class="form-group">
+                    <label>Hitung biaya operasional per:</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn active" onclick="setOpMode('per-product')" id="opModeProduct">Per Produk</button>
+                        <button type="button" class="toggle-btn" onclick="setOpMode('per-month')" id="opModeMonth">Per Bulan</button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="opPerProductGroup">
+                    <label>Biaya operasional per produk
+                        <span class="label-hint">Biaya operasional untuk 1 produk</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">Rp</span>
+                        <input type="number" id="opPerProduct" class="has-prefix" placeholder="2000" min="0" inputmode="numeric">
+                    </div>
+                </div>
+
+                <div id="opPerMonthGroup" class="conditional">
+                    <div class="form-group">
+                        <label>Biaya operasional per bulan
+                            <span class="label-hint">Total biaya operasional selama 1 bulan</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <span class="input-prefix">Rp</span>
+                            <input type="number" id="opPerMonth" class="has-prefix" placeholder="1000000" min="0" inputmode="numeric">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Perkiraan jumlah produk terjual per bulan
+                            <span class="label-hint">Berapa produk yang kamu targetkan terjual dalam 1 bulan</span>
+                        </label>
+                        <input type="number" id="productPerMonth" placeholder="500" min="1" inputmode="numeric">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Jumlah Produk -->
+            <div class="card">
+                <div class="card-title"><span class="icon">📊</span> Jumlah Produk</div>
+                <div class="card-desc">Berapa banyak produk yang ingin kamu hitung atau targetkan untuk diproduksi/dijual. Ini digunakan untuk estimasi keuntungan total.</div>
+                <div class="form-group">
+                    <label>Jumlah produk</label>
+                    <input type="number" id="productQty" placeholder="100" min="1" inputmode="numeric">
+                </div>
+            </div>
+
+            <!-- 5. Biaya Tambahan -->
+            <div class="card">
+                <div class="card-title"><span class="icon">➕</span> Biaya Tambahan</div>
+                <div class="card-desc">Biaya lain yang mungkin muncul, seperti biaya admin marketplace, ongkos kemasan tambahan, komisi, pajak, atau biaya transaksi. (Opsional)</div>
+
+                <div class="form-group">
+                    <label>Tipe biaya tambahan:</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn active" onclick="setExtraMode('rupiah')" id="extraModeRp">Rupiah (Rp)</button>
+                        <button type="button" class="toggle-btn" onclick="setExtraMode('persen')" id="extraModePersen">Persen (%)</button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="extraRpGroup">
+                    <label>Biaya tambahan per produk</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">Rp</span>
+                        <input type="number" id="extraRp" class="has-prefix" placeholder="500" min="0" inputmode="numeric">
+                    </div>
+                </div>
+
+                <div class="form-group conditional" id="extraPersenGroup">
+                    <label>Biaya tambahan (% dari harga jual)
+                        <span class="label-hint">Contoh: komisi marketplace 5%</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="extraPersen" class="has-suffix" placeholder="5" min="0" max="99" step="0.1" inputmode="decimal">
+                        <span class="input-suffix">%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Target Keuntungan -->
+            <div class="card">
+                <div class="card-title"><span class="icon">🎯</span> Target Keuntungan</div>
+                <div class="card-desc">Berapa keuntungan yang ingin kamu dapatkan dari setiap produk. Contoh: Jika total biaya produk Rp10.000 dan target keuntungan 30%, sistem akan menghitung harga jual berdasarkan target tersebut.</div>
+
+                <div class="form-group">
+                    <label>Tipe target keuntungan:</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn active" onclick="setProfitMode('persen')" id="profitModePersen">Persen (%)</button>
+                        <button type="button" class="toggle-btn" onclick="setProfitMode('rupiah')" id="profitModeRp">Rupiah (Rp)</button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="profitPersenGroup">
+                    <label>Target keuntungan (% dari harga jual)
+                        <span class="label-hint">Ini adalah margin keuntungan</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="number" id="profitPersen" class="has-suffix" placeholder="30" min="0" max="99" step="0.1" inputmode="decimal">
+                        <span class="input-suffix">%</span>
+                    </div>
+                    <div class="error-msg" id="errProfitPersen">Masukkan persentase antara 0 - 99</div>
+                </div>
+
+                <div class="form-group conditional" id="profitRpGroup">
+                    <label>Target keuntungan per produk</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">Rp</span>
+                        <input type="number" id="profitRp" class="has-prefix" placeholder="3000" min="0" inputmode="numeric">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Harga Jual Saat Ini -->
+            <div class="card">
+                <div class="card-title"><span class="icon">🏷️</span> Harga Jual Saat Ini</div>
+                <div class="card-desc">Jika produkmu sudah dijual, masukkan harga jual yang sekarang. Sistem akan membandingkan harga tersebut dengan biaya dan target keuntunganmu. (Opsional)</div>
+                <div class="form-group">
+                    <label>Harga jual saat ini</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">Rp</span>
+                        <input type="number" id="currentPrice" class="has-prefix" placeholder="13000" min="0" inputmode="numeric">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. Biaya Tetap (untuk BEP) -->
+            <div class="card">
+                <div class="card-title"><span class="icon">🏠</span> Biaya Tetap per Bulan</div>
+                <div class="card-desc">Total biaya tetap per bulan yang harus dibayar terlepas dari jumlah produk yang terjual (contoh: sewa tempat, gaji karyawan tetap). Digunakan untuk menghitung Break-Even Point. (Opsional)</div>
+                <div class="form-group">
+                    <label>Biaya tetap per bulan</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">Rp</span>
+                        <input type="number" id="fixedCost" class="has-prefix" placeholder="2000000" min="0" inputmode="numeric">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <button type="button" class="btn-primary" onclick="calculatePrice()">
+                💡 HITUNG HARGA
+            </button>
+            <button type="button" class="btn-reset" onclick="resetForm()">
+                🔄 Reset Semua
+            </button>
+        </form>
+
+        <div class="privacy-note" style="margin-top: 16px;">
+            🔒 Perhitungan dilakukan langsung di perangkatmu. Data tidak dikirim ke mana pun.
+        </div>
+
+        <!-- RESULTS -->
+        <div id="results">
+            <div class="section-divider animate-in">
+                <div class="line"></div>
+                <div class="text">Hasil Perhitungan</div>
+                <div class="line"></div>
+            </div>
+
+            <!-- Product Name Display -->
+            <div id="resultProductName" style="text-align:center; font-size:14px; font-weight:700; color: var(--gray-600); margin-bottom:12px;"></div>
+
+            <!-- Hero Result -->
+            <div class="result-hero animate-in" id="heroResult">
+                <div class="result-label">💡 Harga Jual Berdasarkan Target</div>
+                <div class="result-value" id="resSuggestedPrice">Rp0</div>
+                <div class="result-note">Harga ini dihitung berdasarkan biaya dan target keuntungan yang kamu masukkan.</div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="result-grid animate-in">
+                <div class="result-card">
+                    <div class="rc-label">🧾 Total Biaya</div>
+                    <div class="rc-value" id="resTotalCost">Rp0</div>
+                    <div class="rc-desc">Perkiraan seluruh biaya untuk 1 produk</div>
+                </div>
+                <div class="result-card highlight-green">
+                    <div class="rc-label">💵 Keuntungan / Produk</div>
+                    <div class="rc-value" id="resProfitPerProduct">Rp0</div>
+                    <div class="rc-desc">Perkiraan uang tersisa setelah biaya</div>
+                </div>
+                <div class="result-card">
+                    <div class="rc-label">📊 Margin Keuntungan</div>
+                    <div class="rc-value" id="resMargin">0%</div>
+                    <div class="rc-desc">% keuntungan dari harga jual</div>
+                </div>
+                <div class="result-card">
+                    <div class="rc-label">📈 Markup</div>
+                    <div class="rc-value" id="resMarkup">0%</div>
+                    <div class="rc-desc">% kenaikan dari biaya/modal</div>
+                </div>
+            </div>
+
+            <!-- Interpretation -->
+            <div class="interpretation animate-in" id="resInterpretation"></div>
+
+            <!-- Margin vs Markup explanation -->
+            <div class="info-box animate-in" style="margin-bottom: 16px;">
+                <strong>ℹ️ Apa bedanya Margin dan Markup?</strong>
+                <b>Margin</b> = keuntungan dibagi harga jual. Contoh: Jual Rp10.000, untung Rp3.000, margin = 30%.<br>
+                <b>Markup</b> = keuntungan dibagi biaya/modal. Contoh: Modal Rp7.000, untung Rp3.000, markup = 42,9%.<br>
+                Keduanya menunjukkan hal yang mirip tapi dari sudut pandang berbeda.
+            </div>
+
+            <!-- Comparison with current price -->
+            <div class="comparison-bar animate-in" id="comparisonSection" style="display:none;">
+                <div class="comp-title">📌 Perbandingan dengan Harga Saat Ini</div>
+                <div class="comp-items">
+                    <div class="comp-item">
+                        <div class="ci-label">Harga Saat Ini</div>
+                        <div class="ci-value" id="compCurrentPrice" style="color: var(--gray-800);">Rp0</div>
+                    </div>
+                    <div class="comp-arrow">→</div>
+                    <div class="comp-item">
+                        <div class="ci-label">Harga Target</div>
+                        <div class="ci-value" id="compTargetPrice" style="color: var(--primary);">Rp0</div>
+                    </div>
+                </div>
+                <div class="comp-message" id="compMessage"></div>
+            </div>
+
+            <!-- Target Profit Table -->
+            <div class="sim-section animate-in">
+                <div class="sim-title">🎯 Tabel Target Keuntungan</div>
+                <div class="sim-desc">Lihat berbagai pilihan harga berdasarkan target keuntungan berbeda.</div>
+                <table class="target-table" id="targetTable">
+                    <thead>
+                        <tr>
+                            <th>Target</th>
+                            <th>Harga Jual</th>
+                            <th>Keuntungan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="targetTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Break-Even Point -->
+            <div class="sim-section animate-in" id="bepSection">
+                <div class="sim-title">📍 Break-Even Point (BEP)</div>
+                <div class="sim-desc">Titik ketika pendapatan sudah cukup untuk menutup biaya. Setelah melewati titik ini, penjualan berikutnya mulai menghasilkan keuntungan.</div>
+                <div id="bepContent"></div>
+            </div>
+
+            <!-- Price Simulation -->
+            <div class="sim-section animate-in">
+                <div class="sim-title">🎮 Coba Simulasikan Harga</div>
+                <div class="sim-desc">Geser slider atau ubah angka untuk melihat dampaknya terhadap keuntunganmu.</div>
+
+                <div class="slider-container">
+                    <div class="slider-value" id="simPriceDisplay">Rp0</div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <div class="input-wrapper">
+                            <span class="input-prefix">Rp</span>
+                            <input type="number" id="simPriceInput" class="has-prefix" placeholder="15000" min="0" inputmode="numeric" oninput="onSimPriceInput()">
+                        </div>
+                    </div>
+                    <input type="range" id="simSlider" min="0" max="100000" step="100" oninput="onSimSlider()">
+                    <div class="slider-labels">
+                        <span id="simSliderMin">Rp0</span>
+                        <span id="simSliderMax">Rp100.000</span>
+                    </div>
+                </div>
+
+                <div class="sim-results" id="simResults">
+                    <div class="sim-result-item">
+                        <div class="sri-label">Keuntungan</div>
+                        <div class="sri-value" id="simProfit">Rp0</div>
+                    </div>
+                    <div class="sim-result-item">
+                        <div class="sri-label">Margin</div>
+                        <div class="sri-value" id="simMargin">0%</div>
+                    </div>
+                    <div class="sim-result-item">
+                        <div class="sri-label">Markup</div>
+                        <div class="sri-value" id="simMarkup">0%</div>
+                    </div>
+                </div>
+
+                <div class="sim-estimates">
+                    <div class="se-title">Estimasi keuntungan total:</div>
+                    <div class="se-row">
+                        <span class="se-qty">Jika menjual 100 produk</span>
+                        <span class="se-profit" id="simEst100">Rp0</span>
+                    </div>
+                    <div class="se-row">
+                        <span class="se-qty">Jika menjual 500 produk</span>
+                        <span class="se-profit" id="simEst500">Rp0</span>
+                    </div>
+                    <div class="se-row">
+                        <span class="se-qty">Jika menjual 1.000 produk</span>
+                        <span class="se-profit" id="simEst1000">Rp0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Change Presets -->
+            <div class="sim-section animate-in">
+                <div class="sim-title">📐 Simulasi Perubahan Harga</div>
+                <div class="sim-desc">Bagaimana jika harga berdasarkan targetmu berubah? Lihat dampaknya.</div>
+
+                <div class="price-presets" id="pricePresets">
+                    <button type="button" class="preset-btn down" onclick="applyPreset(-10)">Turun 10%</button>
+                    <button type="button" class="preset-btn down" onclick="applyPreset(-5)">Turun 5%</button>
+                    <button type="button" class="preset-btn" onclick="applyPreset(0)">Tetap</button>
+                    <button type="button" class="preset-btn up" onclick="applyPreset(5)">Naik 5%</button>
+                    <button type="button" class="preset-btn up" onclick="applyPreset(10)">Naik 10%</button>
+                    <button type="button" class="preset-btn up" onclick="applyPreset(20)">Naik 20%</button>
+                </div>
+
+                <div class="preset-impact" id="presetImpact">
+                    <div class="pi-row">
+                        <span class="pi-label">Harga Baru</span>
+                        <span class="pi-value" id="presetNewPrice">-</span>
+                    </div>
+                    <div class="pi-row">
+                        <span class="pi-label">Keuntungan / Produk</span>
+                        <span class="pi-value" id="presetProfit">-</span>
+                    </div>
+                    <div class="pi-row">
+                        <span class="pi-label">Margin</span>
+                        <span class="pi-value" id="presetMargin">-</span>
+                    </div>
+                    <div class="pi-row">
+                        <span class="pi-label">Markup</span>
+                        <span class="pi-value" id="presetMarkup">-</span>
+                    </div>
+                    <div class="pi-row">
+                        <span class="pi-label">Keuntungan (100 produk)</span>
+                        <span class="pi-value" id="presetEst">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="disclaimer animate-in">
+                <strong>⚠️ Catatan Penting</strong>
+                WHATITU PRICING HELPER hanya membantu melakukan perhitungan berdasarkan data yang kamu masukkan. Hasilnya bukan jaminan bahwa harga tersebut akan menghasilkan keuntungan di pasar. Harga juga dipengaruhi oleh harga pesaing, daya beli pelanggan, kualitas produk, lokasi, dan strategi bisnis. Pertimbangkan faktor-faktor tersebut sebelum menentukan harga jual akhir.
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="f-name">WHATITU PRICING HELPER</div>
+            <div class="f-copy">© MyWhatitu</div>
+            <div class="f-tagline">Made for smarter business decisions.</div>
+        </div>
+    </div>
+
+    <script>
+        // ===== STATE =====
+        let opMode = 'per-product'; // or 'per-month'
+        let extraMode = 'rupiah';   // or 'persen'
+        let profitMode = 'persen';  // or 'rupiah'
+
+        // Calculated values stored globally for simulation
+        let calcTotalCost = 0;
+        let calcSuggestedPrice = 0;
+        let calcProfitPerProduct = 0;
+        let calcMargin = 0;
+        let calcMarkup = 0;
+
+        // ===== TOGGLE FUNCTIONS =====
+        function setOpMode(mode) {
+            opMode = mode;
+            document.getElementById('opModeProduct').classList.toggle('active', mode === 'per-product');
+            document.getElementById('opModeMonth').classList.toggle('active', mode === 'per-month');
+            document.getElementById('opPerProductGroup').style.display = mode === 'per-product' ? 'block' : 'none';
+            document.getElementById('opPerMonthGroup').classList.toggle('show', mode === 'per-month');
+        }
+
+        function setExtraMode(mode) {
+            extraMode = mode;
+            document.getElementById('extraModeRp').classList.toggle('active', mode === 'rupiah');
+            document.getElementById('extraModePersen').classList.toggle('active', mode === 'persen');
+            document.getElementById('extraRpGroup').style.display = mode === 'rupiah' ? 'block' : 'none';
+            document.getElementById('extraPersenGroup').classList.toggle('show', mode === 'persen');
+        }
+
+        function setProfitMode(mode) {
+            profitMode = mode;
+            document.getElementById('profitModePersen').classList.toggle('active', mode === 'persen');
+            document.getElementById('profitModeRp').classList.toggle('active', mode === 'rupiah');
+            document.getElementById('profitPersenGroup').style.display = mode === 'persen' ? 'block' : 'none';
+            document.getElementById('profitRpGroup').classList.toggle('show', mode === 'rupiah');
+        }
+
+        // ===== FORMATTING =====
+        function formatRp(num) {
+            if (num === null || num === undefined || isNaN(num) || !isFinite(num)) return 'Rp0';
+            let rounded = Math.round(num);
+            let formatted = Math.abs(rounded).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return (rounded < 0 ? '-Rp' : 'Rp') + formatted;
+        }
+
+        function formatPersen(num) {
+            if (num === null || num === undefined || isNaN(num) || !isFinite(num)) return '0%';
+            return num.toFixed(1).replace('.', ',') + '%';
+        }
+
+        // ===== VALIDATION =====
+        function getNumVal(id) {
+            let el = document.getElementById(id);
+            let val = parseFloat(el.value);
+            if (isNaN(val) || !isFinite(val)) return null;
+            return val;
+        }
+
+        function showError(id, show) {
+            let el = document.getElementById(id);
+            if (el) el.style.display = show ? 'block' : 'none';
+        }
+
+        function setInputError(id, error) {
+            let el = document.getElementById(id);
+            if (el) el.classList.toggle('input-error', error);
+        }
+
+        // ===== MAIN CALCULATION =====
+        function calculatePrice() {
+            // Clear previous errors
+            showError('errModal', false);
+            showError('errProfitPersen', false);
+            setInputError('modalPerProduct', false);
+            setInputError('profitPersen', false);
+            setInputError('profitRp', false);
+
+            // 1. Get modal
+            let modal = getNumVal('modalPerProduct');
+            if (modal === null || modal < 0) {
+                showError('errModal', true);
+                setInputError('modalPerProduct', true);
+                document.getElementById('modalPerProduct').focus();
+                return;
+            }
+
+            // 2. Get operational cost per product
+            let opCostPerProduct = 0;
+            if (opMode === 'per-product') {
+                let v = getNumVal('opPerProduct');
+                opCostPerProduct = (v !== null && v >= 0) ? v : 0;
+            } else {
+                let opMonth = getNumVal('opPerMonth');
+                let prodMonth = getNumVal('productPerMonth');
+                if (opMonth !== null && opMonth >= 0 && prodMonth !== null && prodMonth > 0) {
+                    opCostPerProduct = opMonth / prodMonth;
+                }
+            }
+
+            // 3. Product quantity (for estimation)
+            let productQty = getNumVal('productQty');
+            if (productQty === null || productQty < 1) productQty = 1;
+
+            // 4. Extra cost
+            let extraCostRp = 0;
+            let extraPersenVal = 0;
+            let hasExtraPersen = false;
+            if (extraMode === 'rupiah') {
+                let v = getNumVal('extraRp');
+                extraCostRp = (v !== null && v >= 0) ? v : 0;
+            } else {
+                let v = getNumVal('extraPersen');
+                if (v !== null && v >= 0 && v < 100) {
+                    extraPersenVal = v;
+                    hasExtraPersen = true;
+                }
+            }
+
+            // 5. Target profit
+            let targetProfitPersen = null;
+            let targetProfitRp = null;
+
+            if (profitMode === 'persen') {
+                let v = getNumVal('profitPersen');
+                if (v === null || v < 0 || v >= 100) {
+                    showError('errProfitPersen', true);
+                    setInputError('profitPersen', true);
+                    document.getElementById('profitPersen').focus();
+                    return;
+                }
+                targetProfitPersen = v;
+            } else {
+                let v = getNumVal('profitRp');
+                if (v === null || v < 0) {
+                    setInputError('profitRp', true);
+                    document.getElementById('profitRp').focus();
+                    return;
+                }
+                targetProfitRp = v;
+            }
+
+            // 6. Current price (optional)
+            let currentPrice = getNumVal('currentPrice');
+
+            // 7. Fixed cost for BEP (optional)
+            let fixedCost = getNumVal('fixedCost');
+
+            // ===== COMPUTE =====
+            // Base cost (without percentage-based extras)
+            let baseCost = modal + opCostPerProduct + extraCostRp;
+
+            // Calculate suggested price
+            let suggestedPrice = 0;
+
+            if (profitMode === 'persen') {
+                // Target margin = targetProfitPersen%
+                // Price = baseCost / (1 - margin/100 - extraPersen/100)
+                let margin = targetProfitPersen / 100;
+                let extraP = hasExtraPersen ? extraPersenVal / 100 : 0;
+                let denominator = 1 - margin - extraP;
+                if (denominator <= 0) {
+                    alert('Persentase target keuntungan dan biaya tambahan terlalu tinggi. Total tidak boleh mencapai atau melebihi 100%.');
+                    return;
+                }
+                suggestedPrice = baseCost / denominator;
+            } else {
+                // Target profit in rupiah
+                // Price = baseCost + targetProfitRp + extraPersen% * Price
+                // Price * (1 - extraPersen/100) = baseCost + targetProfitRp
+                let extraP = hasExtraPersen ? extraPersenVal / 100 : 0;
+                let denominator = 1 - extraP;
+                if (denominator <= 0) {
+                    alert('Persentase biaya tambahan terlalu tinggi.');
+                    return;
+                }
+                suggestedPrice = (baseCost + targetProfitRp) / denominator;
+            }
+
+            // Actual extra cost from percentage (based on suggested price)
+            let actualExtraPersen = hasExtraPersen ? (extraPersenVal / 100) * suggestedPrice : 0;
+
+            // Total cost per product
+            let totalCost = baseCost + actualExtraPersen;
+
+            // Profit per product
+            let profitPerProduct = suggestedPrice - totalCost;
+
+            // Margin (profit / price * 100)
+            let margin = suggestedPrice > 0 ? (profitPerProduct / suggestedPrice) * 100 : 0;
+
+            // Markup (profit / cost * 100)
+            let markup = totalCost > 0 ? (profitPerProduct / totalCost) * 100 : 0;
+
+            // Store globally
+            calcTotalCost = totalCost;
+            calcSuggestedPrice = suggestedPrice;
+            calcProfitPerProduct = profitPerProduct;
+            calcMargin = margin;
+            calcMarkup = markup;
+
+            // ===== DISPLAY RESULTS =====
+            document.getElementById('results').style.display = 'block';
+
+            // Product name
+            let productName = document.getElementById('productName').value.trim();
+            let nameEl = document.getElementById('resultProductName');
+            nameEl.textContent = productName ? '📦 ' + productName : '';
+
+            // Hero
+            document.getElementById('resSuggestedPrice').textContent = formatRp(suggestedPrice);
+
+            // Metrics
+            document.getElementById('resTotalCost').textContent = formatRp(totalCost);
+            document.getElementById('resProfitPerProduct').textContent = formatRp(profitPerProduct);
+            document.getElementById('resMargin').textContent = formatPersen(margin);
+            document.getElementById('resMarkup').textContent = formatPersen(markup);
+
+            // Interpretation
+            let interpEl = document.getElementById('resInterpretation');
+            let pName = productName || 'produk ini';
+            let interpText = `Dengan biaya sekitar ${formatRp(totalCost)} per produk dan target keuntungan `;
+            if (profitMode === 'persen') {
+                interpText += `${formatPersen(targetProfitPersen)}`;
+            } else {
+                interpText += `${formatRp(targetProfitRp)}`;
+            }
+            interpText += `, harga jual berdasarkan perhitungan untuk "${pName}" adalah sekitar <strong>${formatRp(suggestedPrice)}</strong>.`;
+            interpText += `<br><br>Jika kamu menjual dengan harga tersebut, perkiraan keuntunganmu menjadi <strong>${formatRp(profitPerProduct)}</strong> per produk.`;
+            if (productQty > 1) {
+                interpText += ` Jika menjual ${productQty.toLocaleString('id-ID')} produk, perkiraan total keuntungan: <strong>${formatRp(profitPerProduct * productQty)}</strong>.`;
+            }
+            interpEl.innerHTML = interpText;
+
+            // ===== COMPARISON =====
+            let compSection = document.getElementById('comparisonSection');
+            if (currentPrice !== null && currentPrice > 0) {
+                compSection.style.display = 'block';
+                document.getElementById('compCurrentPrice').textContent = formatRp(currentPrice);
+                document.getElementById('compTargetPrice').textContent = formatRp(suggestedPrice);
+
+                let diff = currentPrice - suggestedPrice;
+                let compMsg = document.getElementById('compMessage');
+
+                if (Math.abs(diff) < 1) {
+                    compMsg.className = 'comp-message equal';
+                    compMsg.textContent = 'Harga saat ini sama dengan harga berdasarkan target keuntunganmu.';
+                } else if (diff < 0) {
+                    compMsg.className = 'comp-message below';
+                    compMsg.textContent = `Harga saat ini berada ${formatRp(Math.abs(diff))} di bawah harga berdasarkan target keuntunganmu. Kamu bisa mempertimbangkan untuk menyesuaikan harga.`;
+                } else {
+                    compMsg.className = 'comp-message above';
+                    compMsg.textContent = `Harga saat ini sudah berada ${formatRp(diff)} di atas target keuntungan yang kamu masukkan. Keuntunganmu lebih besar dari target.`;
+                }
+            } else {
+                compSection.style.display = 'none';
+            }
+
+            // ===== TARGET TABLE =====
+            let targets = [10, 15, 20, 25, 30, 35, 40, 50];
+            let userTarget = profitMode === 'persen' ? targetProfitPersen : (suggestedPrice > 0 ? margin : 0);
+            // Add user's target if not in list
+            let userTargetRounded = Math.round(userTarget * 10) / 10;
+            let inList = targets.some(t => Math.abs(t - userTargetRounded) < 0.5);
+
+            let tbody = document.getElementById('targetTableBody');
+            tbody.innerHTML = '';
+
+            // Build full list
+            let allTargets = [...targets];
+            if (!inList && userTargetRounded > 0 && userTargetRounded < 100) {
+                allTargets.push(userTargetRounded);
+                allTargets.sort((a, b) => a - b);
+            }
+
+            allTargets.forEach(t => {
+                let extraP = hasExtraPersen ? extraPersenVal / 100 : 0;
+                let denom = 1 - t / 100 - extraP;
+                if (denom <= 0) return;
+                let price = baseCost / denom;
+                let actualExtra = hasExtraPersen ? (extraPersenVal / 100) * price : 0;
+                let tc = baseCost + actualExtra;
+                let profit = price - tc;
+
+                let tr = document.createElement('tr');
+                let isHighlight = Math.abs(t - userTargetRounded) < 0.5;
+                if (isHighlight) tr.className = 'highlight-row';
+
+                tr.innerHTML = `<td>${formatPersen(t)}${isHighlight ? ' ⭐' : ''}</td><td>${formatRp(price)}</td><td>${formatRp(profit)}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            // ===== BEP =====
+            let bepContent = document.getElementById('bepContent');
+            if (fixedCost !== null && fixedCost > 0 && profitPerProduct > 0) {
+                // BEP in units = Fixed Cost / (Price - Variable Cost per unit)
+                // Variable cost = totalCost (per unit)
+                let contributionMargin = suggestedPrice - totalCost; // same as profitPerProduct
+                // But we should use actual variable cost for BEP
+                // totalCost includes operational which might be fixed... 
+                // For simplicity, we'll use the profit per product as contribution
+                // BEP = fixedCost / profitPerProduct
+                let bepUnits = Math.ceil(fixedCost / profitPerProduct);
+                let bepRevenue = bepUnits * suggestedPrice;
+
+                bepContent.innerHTML = `
+                    <div class="bep-result">
+                        <div class="bep-value">${bepUnits.toLocaleString('id-ID')}</div>
+                        <div class="bep-unit">produk harus terjual</div>
+                        <div class="bep-desc">
+                            Dengan biaya tetap ${formatRp(fixedCost)}/bulan dan keuntungan ${formatRp(profitPerProduct)}/produk, 
+                            kamu perlu menjual minimal <strong>${bepUnits.toLocaleString('id-ID')} produk</strong> per bulan 
+                            (pendapatan ${formatRp(bepRevenue)}) untuk menutup biaya tetap. 
+                            Setelah titik ini, penjualan berikutnya mulai menghasilkan keuntungan bersih.
+                        </div>
+                    </div>
+                `;
+            } else if (fixedCost !== null && fixedCost > 0 && profitPerProduct <= 0) {
+                bepContent.innerHTML = `
+                    <div class="bep-result">
+                        <div class="bep-value" style="font-size:18px; color: var(--danger);">Tidak dapat dihitung</div>
+                        <div class="bep-desc">
+                            Keuntungan per produk tidak positif, sehingga break-even point tidak dapat tercapai dengan harga ini. 
+                            Pertimbangkan untuk menaikkan target keuntungan atau menurunkan biaya.
+                        </div>
+                    </div>
+                `;
+            } else {
+                bepContent.innerHTML = `
+                    <div class="bep-result">
+                        <div class="bep-value" style="font-size:16px; color: var(--gray-400);">—</div>
+                        <div class="bep-desc">
+                            Masukkan biaya tetap per bulan di formulir di atas untuk menghitung Break-Even Point.
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ===== SIMULATION SLIDER =====
+            let sliderMin = Math.max(0, Math.floor(totalCost * 0.5));
+            let sliderMax = Math.ceil(suggestedPrice * 2.5);
+            // Round to nice numbers
+            sliderMin = Math.floor(sliderMin / 1000) * 1000;
+            sliderMax = Math.ceil(sliderMax / 1000) * 1000;
+            if (sliderMax < sliderMin + 1000) sliderMax = sliderMin + 10000;
+
+            let slider = document.getElementById('simSlider');
+            slider.min = sliderMin;
+            slider.max = sliderMax;
+            slider.step = Math.max(100, Math.round((sliderMax - sliderMin) / 200) * 100);
+            slider.value = Math.round(suggestedPrice);
+
+            document.getElementById('simSliderMin').textContent = formatRp(sliderMin);
+            document.getElementById('simSliderMax').textContent = formatRp(sliderMax);
+
+            document.getElementById('simPriceInput').value = Math.round(suggestedPrice);
+            updateSimulation(Math.round(suggestedPrice));
+
+            // Reset presets
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('presetImpact').style.display = 'none';
+
+            // Scroll to results
+            setTimeout(() => {
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        // ===== SIMULATION =====
+        function updateSimulation(price) {
+            if (price === null || price < 0 || isNaN(price) || !isFinite(price)) price = 0;
+
+            document.getElementById('simPriceDisplay').textContent = formatRp(price);
+
+            let profit = price - calcTotalCost;
+            let margin = price > 0 ? (profit / price) * 100 : 0;
+            let markup = calcTotalCost > 0 ? (profit / calcTotalCost) * 100 : 0;
+
+            document.getElementById('simProfit').textContent = formatRp(profit);
+            document.getElementById('simProfit').style.color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
+            document.getElementById('simMargin').textContent = formatPersen(margin);
+            document.getElementById('simMarkup').textContent = formatPersen(markup);
+
+            document.getElementById('simEst100').textContent = formatRp(profit * 100);
+            document.getElementById('simEst500').textContent = formatRp(profit * 500);
+            document.getElementById('simEst1000').textContent = formatRp(profit * 1000);
+
+            // Color coding
+            ['simEst100', 'simEst500', 'simEst1000'].forEach(id => {
+                let el = document.getElementById(id);
+                let val = profit * parseInt(id.replace('simEst', ''));
+                el.style.color = val >= 0 ? 'var(--success)' : 'var(--danger)';
+            });
+        }
+
+        function onSimSlider() {
+            let val = parseInt(document.getElementById('simSlider').value);
+            document.getElementById('simPriceInput').value = val;
+            updateSimulation(val);
+        }
+
+        function onSimPriceInput() {
+            let val = getNumVal('simPriceInput');
+            if (val !== null && val >= 0) {
+                let slider = document.getElementById('simSlider');
+                // Adjust slider range if needed
+                if (val > parseInt(slider.max)) {
+                    slider.max = Math.ceil(val * 1.5 / 1000) * 1000;
+                    document.getElementById('simSliderMax').textContent = formatRp(parseInt(slider.max));
+                }
+                slider.value = val;
+                updateSimulation(val);
+            }
+        }
+
+        // ===== PRICE PRESETS =====
+        function applyPreset(percent) {
+            // Clear active
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            let newPrice = calcSuggestedPrice * (1 + percent / 100);
+            let profit = newPrice - calcTotalCost;
+            let margin = newPrice > 0 ? (profit / newPrice) * 100 : 0;
+            let markup = calcTotalCost > 0 ? (profit / calcTotalCost) * 100 : 0;
+
+            document.getElementById('presetNewPrice').textContent = formatRp(newPrice);
+            document.getElementById('presetProfit').textContent = formatRp(profit);
+            document.getElementById('presetProfit').style.color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
+            document.getElementById('presetMargin').textContent = formatPersen(margin);
+            document.getElementById('presetMarkup').textContent = formatPersen(markup);
+            document.getElementById('presetEst').textContent = formatRp(profit * 100);
+            document.getElementById('presetEst').style.color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
+
+            document.getElementById('presetImpact').style.display = 'block';
+        }
+
+        // ===== RESET =====
+        function resetForm() {
+            document.getElementById('pricingForm').reset();
+            document.getElementById('results').style.display = 'none';
+
+            // Reset toggles
+            setOpMode('per-product');
+            setExtraMode('rupiah');
+            setProfitMode('persen');
+
+            // Clear errors
+            showError('errModal', false);
+            showError('errProfitPersen', false);
+            setInputError('modalPerProduct', false);
+            setInputError('profitPersen', false);
+            setInputError('profitRp', false);
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ===== INIT =====
+        // Set initial states
+        setOpMode('per-product');
+        setExtraMode('rupiah');
+        setProfitMode('persen');
+    </script>
+</body>
+</html>
