@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHATITU BREAK EVEN — Kalkulator Titik Impas</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root {
+--primary: #2563eb;
+--primary-dark: #1d4ed8;
+--primary-light: #dbeafe;
+--accent: #f59e0b;
+--success: #10b981;
+--danger: #ef4444;
+--warning: #f59e0b;
+--bg: #f0f4f8;
+--card: #ffffff;
+--text: #1e293b;
+--text-light: #64748b;
+--border: #e2e8f0;
+--radius: 16px;
+--radius-sm: 10px;
+--shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+--shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+--shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+background: var(--bg);
+color: var(--text);
+line-height: 1.6;
+-webkit-font-smoothing: antialiased;
+}
+
+.container {
+max-width: 720px;
+margin: 0 auto;
+padding: 0 16px;
+}
+
+/* Header */
+.header {
+background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+color: white;
+padding: 40px 16px 48px;
+text-align: center;
+position: relative;
+overflow: hidden;
+}
+
+.header::after {
+content: '';
+position: absolute;
+bottom: -2px;
+left: 0;
+right: 0;
+height: 30px;
+background: var(--bg);
+border-radius: 50% 50% 0 0;
+}
+
+.header h1 {
+font-size: 28px;
+font-weight: 800;
+letter-spacing: -0.5px;
+margin-bottom: 8px;
+}
+
+.header .subtitle {
+font-size: 16px;
+opacity: 0.9;
+font-weight: 400;
+}
+
+.header .badge {
+display: inline-block;
+background: rgba(255,255,255,0.18);
+padding: 4px 14px;
+border-radius: 20px;
+font-size: 12px;
+margin-bottom: 12px;
+backdrop-filter: blur(4px);
+}
+
+/* Cards */
+.card {
+background: var(--card);
+border-radius: var(--radius);
+padding: 24px;
+margin-bottom: 16px;
+box-shadow: var(--shadow);
+border: 1px solid var(--border);
+}
+
+.card-title {
+font-size: 18px;
+font-weight: 700;
+margin-bottom: 4px;
+color: var(--text);
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.card-title .icon {
+width: 32px;
+height: 32px;
+border-radius: 8px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 16px;
+flex-shrink: 0;
+}
+
+.card-subtitle {
+font-size: 13px;
+color: var(--text-light);
+margin-bottom: 20px;
+}
+
+/* Form */
+.form-group {
+margin-bottom: 20px;
+}
+
+.form-group:last-child {
+margin-bottom: 0;
+}
+
+.form-label {
+display: flex;
+align-items: center;
+gap: 6px;
+font-size: 14px;
+font-weight: 600;
+margin-bottom: 6px;
+color: var(--text);
+}
+
+.form-label .help-trigger {
+width: 18px;
+height: 18px;
+border-radius: 50%;
+background: var(--border);
+color: var(--text-light);
+font-size: 11px;
+font-weight: 700;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+transition: all 0.2s;
+flex-shrink: 0;
+border: none;
+}
+
+.form-label .help-trigger:hover,
+.form-label .help-trigger:focus {
+background: var(--primary);
+color: white;
+}
+
+.help-text {
+display: none;
+background: #f8fafc;
+border: 1px solid var(--border);
+border-radius: var(--radius-sm);
+padding: 10px 14px;
+font-size: 13px;
+color: var(--text-light);
+margin-bottom: 8px;
+line-height: 1.5;
+}
+
+.help-text.show {
+display: block;
+animation: fadeIn 0.2s ease;
+}
+
+.help-text .example {
+margin-top: 6px;
+padding-top: 6px;
+border-top: 1px solid var(--border);
+font-style: italic;
+}
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(-4px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.input-wrapper {
+position: relative;
+}
+
+.input-prefix {
+position: absolute;
+left: 14px;
+top: 50%;
+transform: translateY(-50%);
+font-size: 14px;
+color: var(--text-light);
+font-weight: 600;
+pointer-events: none;
+}
+
+input[type="text"],
+input[type="number"] {
+width: 100%;
+padding: 12px 14px;
+border: 2px solid var(--border);
+border-radius: var(--radius-sm);
+font-size: 16px;
+color: var(--text);
+transition: border-color 0.2s;
+background: #fff;
+font-family: inherit;
+}
+
+input.has-prefix {
+padding-left: 42px;
+}
+
+input:focus {
+outline: none;
+border-color: var(--primary);
+box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+input::placeholder {
+color: #cbd5e1;
+}
+
+select {
+width: 100%;
+padding: 12px 14px;
+border: 2px solid var(--border);
+border-radius: var(--radius-sm);
+font-size: 14px;
+color: var(--text);
+background: #fff;
+font-family: inherit;
+cursor: pointer;
+appearance: none;
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+background-repeat: no-repeat;
+background-position: right 14px center;
+}
+
+select:focus {
+outline: none;
+border-color: var(--primary);
+box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.input-row {
+display: grid;
+grid-template-columns: 1fr auto;
+gap: 8px;
+}
+
+.input-row select {
+width: auto;
+min-width: 120px;
+}
+
+.period-info {
+display: inline-block;
+background: var(--primary-light);
+color: var(--primary-dark);
+font-size: 12px;
+padding: 2px 10px;
+border-radius: 12px;
+margin-top: 6px;
+font-weight: 500;
+}
+
+/* Buttons */
+.btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+padding: 14px 28px;
+border: none;
+border-radius: var(--radius-sm);
+font-size: 16px;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.2s;
+font-family: inherit;
+width: 100%;
+}
+
+.btn-primary {
+background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+color: white;
+box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.btn-primary:hover {
+transform: translateY(-1px);
+box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.btn-primary:active {
+transform: translateY(0);
+}
+
+.btn-secondary {
+background: transparent;
+color: var(--text-light);
+border: 2px solid var(--border);
+padding: 12px 24px;
+font-size: 14px;
+font-weight: 600;
+}
+
+.btn-secondary:hover {
+border-color: var(--text-light);
+color: var(--text);
+}
+
+.btn-group {
+display: grid;
+grid-template-columns: 1fr auto;
+gap: 10px;
+margin-top: 8px;
+}
+
+.btn-group .btn-secondary {
+width: auto;
+}
+
+/* Results */
+.results-section {
+display: none;
+}
+
+.results-section.show {
+display: block;
+animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.result-hero {
+background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+color: white;
+border-radius: var(--radius);
+padding: 28px 24px;
+text-align: center;
+margin-bottom: 16px;
+box-shadow: var(--shadow-lg);
+}
+
+.result-hero .result-label {
+font-size: 14px;
+opacity: 0.85;
+margin-bottom: 4px;
+}
+
+.result-hero .result-value {
+font-size: 42px;
+font-weight: 800;
+letter-spacing: -1px;
+}
+
+.result-hero .result-unit {
+font-size: 18px;
+font-weight: 500;
+opacity: 0.9;
+}
+
+.result-hero .result-explanation {
+font-size: 14px;
+opacity: 0.85;
+margin-top: 12px;
+line-height: 1.5;
+}
+
+.result-hero .product-name-tag {
+display: inline-block;
+background: rgba(255,255,255,0.18);
+padding: 2px 12px;
+border-radius: 12px;
+font-size: 13px;
+margin-bottom: 10px;
+}
+
+.result-cards {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+margin-bottom: 16px;
+}
+
+.result-card-mini {
+background: var(--card);
+border-radius: var(--radius-sm);
+padding: 16px;
+text-align: center;
+box-shadow: var(--shadow);
+border: 1px solid var(--border);
+}
+
+.result-card-mini .rcm-label {
+font-size: 12px;
+color: var(--text-light);
+margin-bottom: 2px;
+}
+
+.result-card-mini .rcm-value {
+font-size: 20px;
+font-weight: 700;
+color: var(--text);
+}
+
+.result-card-mini .rcm-sub {
+font-size: 11px;
+color: var(--text-light);
+margin-top: 2px;
+}
+
+/* Zone indicators */
+.zone-bar {
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+border-radius: var(--radius-sm);
+overflow: hidden;
+margin-bottom: 16px;
+font-size: 12px;
+font-weight: 700;
+text-align: center;
+box-shadow: var(--shadow);
+}
+
+.zone-bar > div {
+padding: 10px 8px;
+}
+
+.zone-rugi {
+background: #fde8e8;
+color: #b91c1c;
+}
+
+.zone-bep {
+background: #fef3c7;
+color: #92400e;
+}
+
+.zone-untung {
+background: #d1fae5;
+color: #065f46;
+}
+
+/* Chart */
+.chart-container {
+position: relative;
+width: 100%;
+height: 300px;
+}
+
+/* Simulation */
+.sim-input-row {
+display: flex;
+gap: 8px;
+margin-bottom: 12px;
+}
+
+.sim-input-row input {
+flex: 1;
+}
+
+.sim-input-row .btn {
+width: auto;
+flex-shrink: 0;
+padding: 12px 20px;
+font-size: 14px;
+}
+
+.sim-result {
+background: #f8fafc;
+border-radius: var(--radius-sm);
+padding: 16px;
+border: 1px solid var(--border);
+}
+
+.sim-result-row {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 6px 0;
+font-size: 14px;
+}
+
+.sim-result-row:not(:last-child) {
+border-bottom: 1px solid var(--border);
+}
+
+.sim-result-row .srr-label {
+color: var(--text-light);
+}
+
+.sim-result-row .srr-value {
+font-weight: 700;
+}
+
+.sim-status {
+margin-top: 10px;
+padding: 10px 14px;
+border-radius: var(--radius-sm);
+font-size: 13px;
+font-weight: 600;
+text-align: center;
+}
+
+.sim-status.loss { background: #fde8e8; color: #b91c1c; }
+.sim-status.even { background: #fef3c7; color: #92400e; }
+.sim-status.profit { background: #d1fae5; color: #065f46; }
+
+/* Price comparison table */
+.price-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 13px;
+margin-top: 12px;
+}
+
+.price-table th,
+.price-table td {
+padding: 10px 8px;
+text-align: center;
+border-bottom: 1px solid var(--border);
+}
+
+.price-table th {
+background: #f8fafc;
+font-weight: 700;
+color: var(--text-light);
+font-size: 11px;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+
+.price-table tr:last-child td {
+border-bottom: none;
+}
+
+.price-table .current-row {
+background: var(--primary-light);
+font-weight: 700;
+}
+
+.price-table .current-row td {
+color: var(--primary-dark);
+}
+
+/* Info card */
+.info-card {
+background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+border: 1px solid #bae6fd;
+border-radius: var(--radius);
+padding: 24px;
+}
+
+.info-card h3 {
+color: #0369a1;
+margin-bottom: 10px;
+}
+
+.info-card p {
+font-size: 14px;
+color: #0c4a6e;
+margin-bottom: 8px;
+line-height: 1.6;
+}
+
+.info-card .info-example {
+background: rgba(255,255,255,0.6);
+border-radius: var(--radius-sm);
+padding: 14px;
+margin-top: 12px;
+font-size: 13px;
+color: #0c4a6e;
+}
+
+/* Privacy badge */
+.privacy-badge {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+background: #f0fdf4;
+border: 1px solid #bbf7d0;
+border-radius: var(--radius-sm);
+padding: 10px 16px;
+font-size: 12px;
+color: #166534;
+margin-bottom: 16px;
+font-weight: 500;
+}
+
+/* Disclaimer */
+.disclaimer {
+background: #fffbeb;
+border: 1px solid #fde68a;
+border-radius: var(--radius-sm);
+padding: 14px 16px;
+font-size: 12px;
+color: #92400e;
+line-height: 1.6;
+margin-bottom: 16px;
+}
+
+/* Error */
+.error-msg {
+background: #fef2f2;
+border: 1px solid #fecaca;
+color: #b91c1c;
+padding: 10px 14px;
+border-radius: var(--radius-sm);
+font-size: 13px;
+margin-bottom: 12px;
+display: none;
+}
+
+.error-msg.show {
+display: block;
+animation: fadeIn 0.2s ease;
+}
+
+.warning-msg {
+background: #fffbeb;
+border: 1px solid #fde68a;
+color: #92400e;
+padding: 14px;
+border-radius: var(--radius-sm);
+font-size: 14px;
+line-height: 1.6;
+}
+
+/* Footer */
+.footer {
+text-align: center;
+padding: 32px 16px;
+margin-top: 20px;
+}
+
+.footer .footer-brand {
+font-size: 16px;
+font-weight: 800;
+color: var(--text);
+margin-bottom: 4px;
+}
+
+.footer .footer-copy {
+font-size: 13px;
+color: var(--text-light);
+}
+
+.footer .footer-tagline {
+font-size: 12px;
+color: var(--text-light);
+margin-top: 4px;
+font-style: italic;
+}
+
+/* Tabs for simulation */
+.sim-tabs {
+display: flex;
+gap: 4px;
+margin-bottom: 16px;
+flex-wrap: wrap;
+}
+
+.sim-tab {
+padding: 8px 14px;
+border-radius: 8px;
+font-size: 13px;
+font-weight: 600;
+cursor: pointer;
+border: 2px solid var(--border);
+background: white;
+color: var(--text-light);
+transition: all 0.2s;
+}
+
+.sim-tab.active {
+border-color: var(--primary);
+background: var(--primary-light);
+color: var(--primary-dark);
+}
+
+.sim-tab:hover:not(.active) {
+border-color: #cbd5e1;
+}
+
+.sim-panel {
+display: none;
+}
+
+.sim-panel.active {
+display: block;
+animation: fadeIn 0.2s ease;
+}
+
+/* Section spacing */
+.section-gap {
+margin-top: 24px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+.header h1 { font-size: 24px; }
+.header .subtitle { font-size: 14px; }
+.result-hero .result-value { font-size: 34px; }
+.result-cards { grid-template-columns: 1fr; }
+.btn-group { grid-template-columns: 1fr; }
+.btn-group .btn-secondary { width: 100%; }
+.sim-tabs { gap: 4px; }
+.sim-tab { padding: 6px 10px; font-size: 12px; }
+.price-table { font-size: 11px; }
+.price-table th, .price-table td { padding: 8px 4px; }
+}
+
+/* Number input arrows hide for cleaner look */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+input[type="number"] { -moz-appearance: textfield; }
+
+.scroll-top {
+position: fixed;
+bottom: 20px;
+right: 20px;
+width: 44px;
+height: 44px;
+border-radius: 50%;
+background: var(--primary);
+color: white;
+border: none;
+font-size: 20px;
+cursor: pointer;
+box-shadow: var(--shadow-md);
+display: none;
+align-items: center;
+justify-content: center;
+z-index: 100;
+transition: all 0.2s;
+}
+
+.scroll-top.show {
+display: flex;
+}
+
+.divider {
+height: 1px;
+background: var(--border);
+margin: 20px 0;
+}
+
+/* Cost change comparison */
+.comparison-row {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 12px;
+margin: 10px 0;
+font-size: 14px;
+flex-wrap: wrap;
+}
+
+.comparison-box {
+text-align: center;
+padding: 10px 16px;
+border-radius: var(--radius-sm);
+}
+
+.comparison-box.before {
+background: #f8fafc;
+border: 1px solid var(--border);
+}
+
+.comparison-box.after {
+background: var(--primary-light);
+border: 1px solid var(--primary);
+}
+
+.comparison-box .comp-label {
+font-size: 11px;
+color: var(--text-light);
+}
+
+.comparison-box .comp-value {
+font-size: 20px;
+font-weight: 800;
+}
+
+.comparison-arrow {
+font-size: 20px;
+color: var(--text-light);
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+<div class="badge">MyWhatitu Tool</div>
+<h1>WHATITU BREAK EVEN</h1>
+<p class="subtitle">Tahu kapan usahamu mulai balik modal.</p>
+</header>
+
+<main class="container" style="margin-top: -16px; padding-bottom: 20px;">
+
+<!-- Privacy Badge -->
+<div class="privacy-badge">
+🔒 Perhitungan dilakukan langsung di perangkatmu. Data tidak dikirim ke mana pun.
+</div>
+
+<!-- Input Section -->
+<div class="card">
+<div class="card-title">
+<div class="icon" style="background: var(--primary-light); color: var(--primary);">📋</div>
+Data Usaha
+</div>
+<p class="card-subtitle">Masukkan informasi produk dan biaya usahamu.</p>
+
+<div id="errorMsg" class="error-msg"></div>
+
+<!-- Nama Produk -->
+<div class="form-group">
+<label class="form-label">
+Nama produk
+<button class="help-trigger" onclick="toggleHelp('helpNama')" aria-label="Bantuan">?</button>
+</label>
+<div id="helpNama" class="help-text">
+Nama produk yang ingin kamu hitung. Ini hanya untuk membantu mengenali hasil perhitungan.
+<div class="example">Contoh: Es Kopi Susu, Kaos Sablon, Kue Basah</div>
+</div>
+<input type="text" id="productName" placeholder="Contoh: Es Kopi Susu" maxlength="50">
+</div>
+
+<!-- Biaya Tetap -->
+<div class="form-group">
+<label class="form-label">
+Biaya tetap
+<button class="help-trigger" onclick="toggleHelp('helpBiayaTetap')" aria-label="Bantuan">?</button>
+</label>
+<div id="helpBiayaTetap" class="help-text">
+Biaya yang harus kamu keluarkan meskipun tidak menjual produk, atau relatif tidak berubah terhadap jumlah produk yang dijual.
+<div class="example">
+Contoh biaya tetap: sewa tempat, gaji tetap, internet, langganan aplikasi, peralatan usaha, biaya listrik minimum.<br><br>
+Contoh: Rp2.000.000 per bulan
+</div>
+</div>
+<div class="input-row">
+<div class="input-wrapper">
+<span class="input-prefix">Rp</span>
+<input type="number" id="fixedCost" class="has-prefix" placeholder="2.000.000" min="0" inputmode="numeric">
+</div>
+<select id="fixedCostPeriod">
+<option value="bulan">Per bulan</option>
+<option value="hari">Per hari</option>
+<option value="minggu">Per minggu</option>
+<option value="tahun">Per tahun</option>
+</select>
+</div>
+<span class="period-info" id="periodInfo">Periode: per bulan</span>
+</div>
+
+<!-- Biaya per Produk -->
+<div class="form-group">
+<label class="form-label">
+Biaya untuk membuat/mendapatkan 1 produk
+<button class="help-trigger" onclick="toggleHelp('helpBiayaProduk')" aria-label="Bantuan">?</button>
+</label>
+<div id="helpBiayaProduk" class="help-text">
+Berapa biaya yang bertambah setiap kali kamu membuat atau menjual satu produk.
+<div class="example">
+Contoh: Jika membuat satu produk membutuhkan bahan Rp5.000 + kemasan Rp1.000 + biaya lainnya Rp500, maka biaya per produk = Rp6.500.<br><br>
+💡 Dalam akuntansi, biaya seperti ini sering disebut <em>biaya variabel</em> karena berubah mengikuti jumlah produk.
+</div>
+</div>
+<div class="input-wrapper">
+<span class="input-prefix">Rp</span>
+<input type="number" id="variableCost" class="has-prefix" placeholder="6.500" min="0" inputmode="numeric">
+</div>
+</div>
+
+<!-- Harga Jual -->
+<div class="form-group">
+<label class="form-label">
+Harga jual per produk
+<button class="help-trigger" onclick="toggleHelp('helpHargaJual')" aria-label="Bantuan">?</button>
+</label>
+<div id="helpHargaJual" class="help-text">
+Berapa harga yang dibayar pelanggan untuk membeli satu produk.
+<div class="example">Contoh: Rp10.000</div>
+</div>
+<div class="input-wrapper">
+<span class="input-prefix">Rp</span>
+<input type="number" id="sellingPrice" class="has-prefix" placeholder="10.000" min="0" inputmode="numeric">
+</div>
+</div>
+
+<!-- Buttons -->
+<div class="btn-group" style="margin-top: 20px;">
+<button class="btn btn-primary" onclick="calculateBEP()">HITUNG BEP</button>
+<button class="btn btn-secondary" onclick="resetAll()">Reset</button>
+</div>
+</div>
+
+<!-- Results Section -->
+<div class="results-section" id="resultsSection">
+
+<!-- BEP Hero Result -->
+<div class="result-hero" id="resultHero">
+<div class="product-name-tag" id="resultProductName"></div>
+<div class="result-label">Titik Impas (Break-Even Point)</div>
+<div>
+<span class="result-value" id="resultBepQty">0</span>
+<span class="result-unit">produk</span>
+</div>
+<p class="result-explanation" id="resultExplanation"></p>
+</div>
+
+<!-- BEP Omzet & Margin -->
+<div class="result-cards">
+<div class="result-card-mini">
+<div class="rcm-label">BEP Omzet</div>
+<div class="rcm-value" id="resultBepRevenue">-</div>
+<div class="rcm-sub">Omzet minimum</div>
+</div>
+<div class="result-card-mini">
+<div class="rcm-label">Kontribusi per Produk</div>
+<div class="rcm-value" id="resultMargin">-</div>
+<div class="rcm-sub">Harga jual − biaya per produk</div>
+</div>
+</div>
+
+<!-- Zone Bar -->
+<div class="zone-bar">
+<div class="zone-rugi">❌ RUGI<br><small>Sebelum BEP</small></div>
+<div class="zone-bep">🟡 BALIK MODAL<br><small>Titik BEP</small></div>
+<div class="zone-untung">✅ UNTUNG<br><small>Setelah BEP</small></div>
+</div>
+
+<!-- Chart -->
+<div class="card">
+<div class="card-title">
+<div class="icon" style="background: #ede9fe; color: #7c3aed;">📊</div>
+Grafik BEP
+</div>
+<p class="card-subtitle">Titik perpotongan garis pendapatan dan total biaya adalah Break-Even Point.</p>
+<div class="chart-container">
+<canvas id="bepChart"></canvas>
+</div>
+</div>
+
+<!-- Warning for margin <= 0 -->
+<div class="card" id="warningCard" style="display: none;">
+<div class="warning-msg" id="warningMsg"></div>
+</div>
+
+<!-- Simulations -->
+<div class="card section-gap" id="simulationCard">
+<div class="card-title">
+<div class="icon" style="background: #fef3c7; color: #d97706;">🔮</div>
+Simulasi
+</div>
+<p class="card-subtitle">Coba berbagai skenario untuk memahami kondisi usahamu.</p>
+
+<div class="sim-tabs">
+<button class="sim-tab active" onclick="switchSimTab('simSales')">Jumlah Penjualan</button>
+<button class="sim-tab" onclick="switchSimTab('simProfit')">Target Keuntungan</button>
+<button class="sim-tab" onclick="switchSimTab('simPrice')">Perubahan Harga</button>
+<button class="sim-tab" onclick="switchSimTab('simCost')">Perubahan Biaya</button>
+</div>
+
+<!-- Sim: Sales -->
+<div class="sim-panel active" id="simSales">
+<p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px;">Kalau saya menjual lebih banyak?</p>
+<div class="sim-input-row">
+<div class="input-wrapper" style="flex:1;">
+<input type="number" id="simSalesQty" placeholder="Jumlah produk" min="0" inputmode="numeric">
+</div>
+<button class="btn btn-primary" onclick="simSalesCalc()" style="width: auto;">Hitung</button>
+</div>
+<div id="simSalesResult"></div>
+</div>
+
+<!-- Sim: Profit Target -->
+<div class="sim-panel" id="simProfit">
+<p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px;">Kalau saya ingin untung Rp...?</p>
+<div class="sim-input-row">
+<div class="input-wrapper" style="flex:1; position: relative;">
+<span class="input-prefix">Rp</span>
+<input type="number" id="simProfitTarget" class="has-prefix" placeholder="2.000.000" min="0" inputmode="numeric">
+</div>
+<button class="btn btn-primary" onclick="simProfitCalc()" style="width: auto;">Hitung</button>
+</div>
+<div id="simProfitResult"></div>
+</div>
+
+<!-- Sim: Price Change -->
+<div class="sim-panel" id="simPrice">
+<p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px;">Bagaimana kalau harga jual berubah?</p>
+<div id="simPriceResult"></div>
+</div>
+
+<!-- Sim: Cost Change -->
+<div class="sim-panel" id="simCost">
+<p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px;">Bagaimana kalau biaya berubah?</p>
+<div id="simCostResult"></div>
+</div>
+
+</div>
+
+<!-- About BEP -->
+<div class="info-card section-gap">
+<h3>💡 Apa itu Break-Even Point?</h3>
+<p><strong>Break-Even Point</strong> atau <strong>BEP</strong> adalah titik ketika pendapatan usaha sudah cukup untuk menutup seluruh biaya.</p>
+<p>Sederhananya, BEP menunjukkan <strong>berapa banyak produk yang perlu kamu jual agar tidak rugi</strong>.</p>
+<p>Setelah melewati titik ini, setiap produk tambahan yang terjual akan menghasilkan keuntungan.</p>
+<div class="info-example">
+<strong>Contoh sederhana:</strong><br>
+Misalnya biaya tetap usahamu Rp2.000.000 dan setiap produk memberikan kontribusi Rp5.000 untuk menutup biaya tersebut. Kamu perlu menjual sekitar <strong>400 produk</strong> untuk mencapai titik impas.
+</div>
+</div>
+
+</div><!-- end results section -->
+
+<!-- Disclaimer -->
+<div class="disclaimer section-gap">
+⚠️ <strong>Catatan:</strong> WHATITU BREAK EVEN membantu menghitung titik impas berdasarkan data yang kamu masukkan. Hasil perhitungan bukan jaminan keuntungan usaha. Kondisi pasar, permintaan pelanggan, perubahan biaya, pajak, dan faktor bisnis lainnya tetap perlu dipertimbangkan.
+</div>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+<div class="footer-brand">WHATITU BREAK EVEN</div>
+<div class="footer-copy">© MyWhatitu</div>
+<div class="footer-tagline">Made for smarter business decisions.</div>
+</footer>
+
+<!-- Scroll to top -->
+<button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Kembali ke atas">↑</button>
+
+<script>
+// ====== GLOBALS ======
+let bepChart = null;
+let calcData = {}; // store last calculation
+
+// ====== HELPERS ======
+function formatRupiah(num) {
+if (num === undefined || num === null || isNaN(num)) return 'Rp0';
+const rounded = Math.round(num);
+return 'Rp' + rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function toggleHelp(id) {
+const el = document.getElementById(id);
+el.classList.toggle('show');
+}
+
+function showError(msg) {
+const el = document.getElementById('errorMsg');
+el.textContent = msg;
+el.classList.add('show');
+}
+
+function hideError() {
+document.getElementById('errorMsg').classList.remove('show');
+}
+
+// ====== PERIOD ======
+document.getElementById('fixedCostPeriod').addEventListener('change', function() {
+const labels = { hari: 'per hari', minggu: 'per minggu', bulan: 'per bulan', tahun: 'per tahun' };
+document.getElementById('periodInfo').textContent = 'Periode: ' + labels[this.value];
+});
+
+// ====== SCROLL TOP BTN ======
+window.addEventListener('scroll', function() {
+const btn = document.getElementById('scrollTopBtn');
+if (window.scrollY > 400) {
+btn.classList.add('show');
+} else {
+btn.classList.remove('show');
+}
+});
+
+// ====== RESET ======
+function resetAll() {
+document.getElementById('productName').value = '';
+document.getElementById('fixedCost').value = '';
+document.getElementById('variableCost').value = '';
+document.getElementById('sellingPrice').value = '';
+document.getElementById('fixedCostPeriod').value = 'bulan';
+document.getElementById('periodInfo').textContent = 'Periode: per bulan';
+document.getElementById('resultsSection').classList.remove('show');
+document.getElementById('simSalesQty').value = '';
+document.getElementById('simProfitTarget').value = '';
+document.getElementById('simSalesResult').innerHTML = '';
+document.getElementById('simProfitResult').innerHTML = '';
+hideError();
+if (bepChart) { bepChart.destroy(); bepChart = null; }
+calcData = {};
+}
+
+// ====== SIMULATION TABS ======
+function switchSimTab(tabId) {
+document.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active'));
+document.querySelectorAll('.sim-panel').forEach(p => p.classList.remove('active'));
+document.getElementById(tabId).classList.add('active');
+// find the button
+document.querySelectorAll('.sim-tab').forEach(t => {
+if (t.getAttribute('onclick').includes(tabId)) t.classList.add('active');
+});
+}
+
+// ====== MAIN CALCULATION ======
+function calculateBEP() {
+hideError();
+
+const productName = document.getElementById('productName').value.trim();
+const fixedCostRaw = document.getElementById('fixedCost').value;
+const variableCostRaw = document.getElementById('variableCost').value;
+const sellingPriceRaw = document.getElementById('sellingPrice').value;
+const period = document.getElementById('fixedCostPeriod').value;
+
+// Validation
+if (fixedCostRaw === '' && variableCostRaw === '' && sellingPriceRaw === '') {
+showError('Silakan isi data biaya tetap, biaya per produk, dan harga jual terlebih dahulu.');
+return;
+}
+if (fixedCostRaw === '') {
+showError('Silakan isi biaya tetap. Jika tidak ada biaya tetap, masukkan angka 0.');
+return;
+}
+if (variableCostRaw === '') {
+showError('Silakan isi biaya untuk membuat/mendapatkan 1 produk.');
+return;
+}
+if (sellingPriceRaw === '') {
+showError('Silakan isi harga jual per produk.');
+return;
+}
+
+const fixedCost = parseFloat(fixedCostRaw);
+const variableCost = parseFloat(variableCostRaw);
+const sellingPrice = parseFloat(sellingPriceRaw);
+
+if (isNaN(fixedCost) || isNaN(variableCost) || isNaN(sellingPrice)) {
+showError('Pastikan semua input berupa angka yang valid.');
+return;
+}
+
+if (fixedCost < 0 || variableCost < 0 || sellingPrice < 0) {
+showError('Angka tidak boleh negatif. Silakan periksa kembali input kamu.');
+return;
+}
+
+if (sellingPrice === 0) {
+showError('Harga jual tidak boleh nol. Silakan masukkan harga jual produk.');
+return;
+}
+
+const margin = sellingPrice - variableCost; // contribution margin
+
+// Store for simulations
+calcData = { productName, fixedCost, variableCost, sellingPrice, period, margin };
+
+const resultSection = document.getElementById('resultsSection');
+const warningCard = document.getElementById('warningCard');
+const simulationCard = document.getElementById('simulationCard');
+
+// Handle special case: margin <= 0
+if (margin <= 0) {
+// Can't reach BEP
+document.getElementById('resultProductName').textContent = productName || '';
+document.getElementById('resultProductName').style.display = productName ? 'inline-block' : 'none';
+document.getElementById('resultBepQty').textContent = '∞';
+document.getElementById('resultExplanation').textContent = 'Dengan kondisi saat ini, titik impas tidak dapat dicapai.';
+document.getElementById('resultBepRevenue').textContent = '-';
+document.getElementById('resultMargin').textContent = formatRupiah(margin);
+
+warningCard.style.display = 'block';
+let wmsg = '';
+if (margin === 0) {
+wmsg = '⚠️ Harga jual sama dengan biaya per produk. Setiap produk yang terjual tidak menghasilkan kontribusi untuk menutup biaya tetap. Coba naikkan harga jual atau kurangi biaya per produk.';
+} else {
+wmsg = '⚠️ Harga jualmu saat ini tidak cukup untuk menutup biaya per produk. Dengan kondisi ini, semakin banyak produk yang terjual belum tentu membuat usaha mencapai keuntungan. Coba naikkan harga jual atau kurangi biaya per produk.';
+}
+document.getElementById('warningMsg').textContent = wmsg;
+
+// Hide chart & simulation but show results
+simulationCard.style.display = 'none';
+if (bepChart) { bepChart.destroy(); bepChart = null; }
+
+resultSection.classList.add('show');
+resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+return;
+}
+
+warningCard.style.display = 'none';
+simulationCard.style.display = '';
+
+// BEP Calculation
+const bepUnitsExact = fixedCost / margin;
+const bepUnits = Math.ceil(bepUnitsExact);
+const bepRevenue = bepUnits * sellingPrice;
+
+// Display results
+document.getElementById('resultProductName').textContent = productName || '';
+document.getElementById('resultProductName').style.display = productName ? 'inline-block' : 'none';
+document.getElementById('resultBepQty').textContent = bepUnits.toLocaleString('id-ID');
+
+const periodLabels = { hari: 'per hari', minggu: 'per minggu', bulan: 'per bulan', tahun: 'per tahun' };
+let explanationText = '';
+if (fixedCost === 0) {
+explanationText = 'Karena biaya tetap kamu adalah Rp0, secara perhitungan BEP berdasarkan biaya tetap adalah 0 produk. Namun, kamu tetap perlu mempertimbangkan biaya per produk agar setiap penjualan menghasilkan keuntungan.';
+} else {
+explanationText = 'Kamu perlu menjual sekitar ' + bepUnits.toLocaleString('id-ID') + ' produk (' + periodLabels[period] + ') untuk mencapai titik impas. Pada titik ini, pendapatanmu diperkirakan sudah cukup untuk menutup biaya. Kamu belum mendapatkan keuntungan, tetapi juga tidak mengalami kerugian.';
+}
+document.getElementById('resultExplanation').textContent = explanationText;
+
+document.getElementById('resultBepRevenue').textContent = formatRupiah(bepRevenue);
+document.getElementById('resultMargin').textContent = formatRupiah(margin);
+
+// Draw chart
+drawChart(fixedCost, variableCost, sellingPrice, bepUnits);
+
+// Auto-fill simulations
+runPriceSimulation();
+runCostSimulation();
+
+resultSection.classList.add('show');
+
+// Scroll to results
+setTimeout(() => {
+document.getElementById('resultHero').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}, 100);
+}
+
+// ====== CHART ======
+function drawChart(fixedCost, variableCost, sellingPrice, bepUnits) {
+const ctx = document.getElementById('bepChart').getContext('2d');
+if (bepChart) bepChart.destroy();
+
+const maxUnits = Math.max(Math.ceil(bepUnits * 1.8), 10);
+const steps = 8;
+const stepSize = Math.ceil(maxUnits / steps);
+const labels = [];
+const revenueData = [];
+const costData = [];
+
+for (let i = 0; i <= steps; i++) {
+const qty = i * stepSize;
+labels.push(qty);
+revenueData.push(qty * sellingPrice);
+costData.push(fixedCost + qty * variableCost);
+}
+
+// Ensure BEP point is included
+if (!labels.includes(bepUnits)) {
+labels.push(bepUnits);
+revenueData.push(bepUnits * sellingPrice);
+costData.push(fixedCost + bepUnits * variableCost);
+// Sort
+const combined = labels.map((l, i) => ({ label: l, rev: revenueData[i], cost: costData[i] }));
+combined.sort((a, b) => a.label - b.label);
+labels.length = 0;
+revenueData.length = 0;
+costData.length = 0;
+combined.forEach(c => {
+labels.push(c.label);
+revenueData.push(c.rev);
+costData.push(c.cost);
+});
+}
+
+bepChart = new Chart(ctx, {
+type: 'line',
+data: {
+labels: labels,
+datasets: [
+{
+label: 'Pendapatan',
+data: revenueData,
+borderColor: '#10b981',
+backgroundColor: 'rgba(16, 185, 129, 0.08)',
+borderWidth: 3,
+fill: false,
+tension: 0,
+pointRadius: labels.map(l => l === bepUnits ? 8 : 3),
+pointBackgroundColor: labels.map(l => l === bepUnits ? '#f59e0b' : '#10b981'),
+pointBorderColor: labels.map(l => l === bepUnits ? '#f59e0b' : '#10b981'),
+pointBorderWidth: labels.map(l => l === bepUnits ? 3 : 1),
+},
+{
+label: 'Total Biaya',
+data: costData,
+borderColor: '#ef4444',
+backgroundColor: 'rgba(239, 68, 68, 0.08)',
+borderWidth: 3,
+fill: false,
+tension: 0,
+pointRadius: labels.map(l => l === bepUnits ? 8 : 3),
+pointBackgroundColor: labels.map(l => l === bepUnits ? '#f59e0b' : '#ef4444'),
+pointBorderColor: labels.map(l => l === bepUnits ? '#f59e0b' : '#ef4444'),
+pointBorderWidth: labels.map(l => l === bepUnits ? 3 : 1),
+}
+]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+interaction: {
+intersect: false,
+mode: 'index'
+},
+plugins: {
+legend: {
+position: 'bottom',
+labels: {
+usePointStyle: true,
+padding: 16,
+font: { size: 12 }
+}
+},
+tooltip: {
+callbacks: {
+title: function(items) {
+return items[0].label + ' produk';
+},
+label: function(item) {
+return item.dataset.label + ': ' + formatRupiah(item.raw);
+},
+afterBody: function(items) {
+const qty = parseInt(items[0].label);
+if (qty === bepUnits) {
+return ['', '⭐ BREAK-EVEN POINT'];
+}
+return [];
+}
+}
+},
+annotation: undefined
+},
+scales: {
+x: {
+title: {
+display: true,
+text: 'Jumlah Produk',
+font: { size: 12 }
+},
+grid: { display: false },
+ticks: {
+callback: function(value) {
+return this.getLabelForValue(value);
+},
+font: { size: 11 }
+}
+},
+y: {
+title: {
+display: true,
+text: 'Rupiah',
+font: { size: 12 }
+},
+ticks: {
+callback: function(value) {
+if (value >= 1000000) return 'Rp' + (value / 1000000).toFixed(1) + 'jt';
+if (value >= 1000) return 'Rp' + (value / 1000).toFixed(0) + 'rb';
+return 'Rp' + value;
+},
+font: { size: 11 }
+},
+grid: {
+color: 'rgba(0,0,0,0.05)'
+}
+}
+}
+}
+});
+}
+
+// ====== SIMULATION: SALES QTY ======
+function simSalesCalc() {
+const { fixedCost, variableCost, sellingPrice, margin } = calcData;
+if (!margin || margin <= 0) return;
+
+const qtyRaw = document.getElementById('simSalesQty').value;
+if (qtyRaw === '' || isNaN(parseFloat(qtyRaw))) {
+document.getElementById('simSalesResult').innerHTML = '<div class="sim-status loss">Silakan masukkan jumlah produk.</div>';
+return;
+}
+
+const qty = Math.max(0, Math.floor(parseFloat(qtyRaw)));
+const revenue = qty * sellingPrice;
+const totalCost = fixedCost + qty * variableCost;
+const profit = revenue - totalCost;
+
+const bepUnits = Math.ceil(fixedCost / margin);
+
+let statusClass, statusText;
+if (qty < bepUnits) {
+statusClass = 'loss';
+statusText = '⚠️ Kamu masih berada di bawah titik impas. Perlu menjual ' + (bepUnits - qty).toLocaleString('id-ID') + ' produk lagi.';
+} else if (qty === bepUnits) {
+statusClass = 'even';
+statusText = '🟡 Kamu berada di sekitar titik impas.';
+} else {
+statusClass = 'profit';
+statusText = '🟢 Kamu sudah melewati titik impas!';
+}
+
+document.getElementById('simSalesResult').innerHTML = `
+<div class="sim-result">
+<div class="sim-result-row">
+<span class="srr-label">Jumlah produk</span>
+<span class="srr-value">${qty.toLocaleString('id-ID')}</span>
+</div>
+<div class="sim-result-row">
+<span class="srr-label">Omzet</span>
+<span class="srr-value">${formatRupiah(revenue)}</span>
+</div>
+<div class="sim-result-row">
+<span class="srr-label">Total biaya</span>
+<span class="srr-value">${formatRupiah(totalCost)}</span>
+</div>
+<div class="sim-result-row">
+<span class="srr-label">${profit >= 0 ? 'Perkiraan keuntungan' : 'Perkiraan kerugian'}</span>
+<span class="srr-value" style="color: ${profit >= 0 ? '#10b981' : '#ef4444'}">${profit >= 0 ? '+' : ''}${formatRupiah(Math.abs(profit))}</span>
+</div>
+</div>
+<div class="sim-status ${statusClass}">${statusText}</div>
+`;
+}
+
+// ====== SIMULATION: PROFIT TARGET ======
+function simProfitCalc() {
+const { fixedCost, variableCost, sellingPrice, margin, period } = calcData;
+if (!margin || margin <= 0) return;
+
+const targetRaw = document.getElementById('simProfitTarget').value;
+if (targetRaw === '' || isNaN(parseFloat(targetRaw))) {
+document.getElementById('simProfitResult').innerHTML = '<div class="sim-status loss">Silakan masukkan target keuntungan.</div>';
+return;
+}
+
+const target = Math.max(0, parseFloat(targetRaw));
+const qtyNeeded = Math.ceil((fixedCost + target) / margin);
+const revenueNeeded = qtyNeeded * sellingPrice;
+
+const periodLabels = { hari: 'per hari', minggu: 'per minggu', bulan: 'per bulan', tahun: 'per tahun' };
+
+document.getElementById('simProfitResult').innerHTML = `
+<div class="sim-result">
+<div class="sim-result-row">
+<span class="srr-label">Target keuntungan</span>
+<span class="srr-value">${formatRupiah(target)}</span>
+</div>
+<div class="sim-result-row">
+<span class="srr-label">Produk yang perlu dijual</span>
+<span class="srr-value">${qtyNeeded.toLocaleString('id-ID')} produk</span>
+</div>
+<div class="sim-result-row">
+<span class="srr-label">Omzet yang diperlukan</span>
+<span class="srr-value">${formatRupiah(revenueNeeded)}</span>
+</div>
+</div>
+<div class="sim-status profit">Kamu perlu menjual sekitar <strong>${qtyNeeded.toLocaleString('id-ID')}</strong> produk (${periodLabels[period]}) untuk mencapai target keuntungan ${formatRupiah(target)}.</div>
+`;
+}
+
+// ====== SIMULATION: PRICE CHANGE ======
+function runPriceSimulation() {
+const { fixedCost, variableCost, sellingPrice, margin } = calcData;
+if (!margin || margin <= 0) return;
+
+const bepUnits = Math.ceil(fixedCost / margin);
+const scenarios = [
+{ label: 'Harga turun 10%', factor: 0.90 },
+{ label: 'Harga turun 5%', factor: 0.95 },
+{ label: 'Harga saat ini', factor: 1.00, current: true },
+{ label: 'Harga naik 5%', factor: 1.05 },
+{ label: 'Harga naik 10%', factor: 1.10 },
+{ label: 'Harga naik 20%', factor: 1.20 },
+];
+
+let html = '<table class="price-table"><thead><tr><th>Skenario</th><th>Harga Jual</th><th>BEP Produk</th><th>BEP Omzet</th></tr></thead><tbody>';
+
+scenarios.forEach(s => {
+const newPrice = Math.round(sellingPrice * s.factor);
+const newMargin = newPrice - variableCost;
+let bep, bepRev;
+
+if (newMargin <= 0) {
+bep = '∞';
+bepRev = '-';
+} else {
+bep = Math.ceil(fixedCost / newMargin);
+bepRev = formatRupiah(bep * newPrice);
+bep = bep.toLocaleString('id-ID');
+}
+
+const rowClass = s.current ? 'current-row' : '';
+html += `<tr class="${rowClass}">
+<td>${s.label}</td>
+<td>${formatRupiah(newPrice)}</td>
+<td>${bep}</td>
+<td>${bepRev}</td>
+</tr>`;
+});
+
+html += '</tbody></table>';
+html += '<p style="font-size:12px; color: var(--text-light); margin-top: 10px; text-align: center;">Perubahan harga jual dapat memengaruhi titik impas secara signifikan.</p>';
+
+document.getElementById('simPriceResult').innerHTML = html;
+}
+
+// ====== SIMULATION: COST CHANGE ======
+function runCostSimulation() {
+const { fixedCost, variableCost, sellingPrice, margin } = calcData;
+if (!margin || margin <= 0) return;
+
+const bepUnitsBefore = Math.ceil(fixedCost / margin);
+
+const scenarios = [
+{ label: 'Biaya turun 10%', fixFactor: 0.90, varFactor: 0.90 },
+{ label: 'Biaya turun 5%', fixFactor: 0.95, varFactor: 0.95 },
+{ label: 'Biaya saat ini', fixFactor: 1.00, varFactor: 1.00, current: true },
+{ label: 'Biaya naik 5%', fixFactor: 1.05, varFactor: 1.05 },
+{ label: 'Biaya naik 10%', fixFactor: 1.10, varFactor: 1.10 },
+{ label: 'Biaya naik 20%', fixFactor: 1.20, varFactor: 1.20 },
+];
+
+let html = '<table class="price-table"><thead><tr><th>Skenario</th><th>Biaya Tetap</th><th>Biaya/Produk</th><th>BEP Produk</th></tr></thead><tbody>';
+
+scenarios.forEach(s => {
+const newFixed = Math.round(fixedCost * s.fixFactor);
+const newVar = Math.round(variableCost * s.varFactor);
+const newMargin = sellingPrice - newVar;
+let bep;
+
+if (newMargin <= 0) {
+bep = '∞';
+} else {
+bep = Math.ceil(newFixed / newMargin);
+bep = bep.toLocaleString('id-ID');
+}
+
+const rowClass = s.current ? 'current-row' : '';
+html += `<tr class="${rowClass}">
+<td>${s.label}</td>
+<td>${formatRupiah(newFixed)}</td>
+<td>${formatRupiah(newVar)}</td>
+<td>${bep}</td>
+</tr>`;
+});
+
+html += '</tbody></table>';
+
+// Show a comparison example
+const newFixed10 = Math.round(fixedCost * 1.10);
+const newVar10 = Math.round(variableCost * 1.10);
+const newMargin10 = sellingPrice - newVar10;
+if (newMargin10 > 0) {
+const bepAfter = Math.ceil(newFixed10 / newMargin10);
+html += `<div style="margin-top: 14px; font-size: 13px; color: var(--text-light); text-align: center;">
+Contoh: Biaya naik 10% menyebabkan BEP meningkat dari <strong>${bepUnitsBefore.toLocaleString('id-ID')}</strong> menjadi <strong>${bepAfter.toLocaleString('id-ID')}</strong> produk.
+</div>`;
+}
+
+document.getElementById('simCostResult').innerHTML = html;
+}
+
+// ====== ENTER KEY SUPPORT ======
+document.querySelectorAll('#fixedCost, #variableCost, #sellingPrice').forEach(input => {
+input.addEventListener('keypress', function(e) {
+if (e.key === 'Enter') calculateBEP();
+});
+});
+
+document.getElementById('simSalesQty').addEventListener('keypress', function(e) {
+if (e.key === 'Enter') simSalesCalc();
+});
+
+document.getElementById('simProfitTarget').addEventListener('keypress', function(e) {
+if (e.key === 'Enter') simProfitCalc();
+});
+</script>
+
+</body>
+</html>
